@@ -175,6 +175,10 @@ public class Algorithm {
 
 	}
 	
+	
+	/*
+	 * 第一次 提交版本
+	 */
 	public static Map<Integer, Integer> algorithm2(List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		Dp dp[][] = new Dp[taskWeight.size() + 1][days + 1];
 		
@@ -221,6 +225,73 @@ public class Algorithm {
 		
 		return selected;
 	}
+	
+	/*
+	 * optimized DP algorithm
+	 */
+	public static Map<Integer, Integer> algorithm3(List<Integer> taskWeight, List<Integer> taskCount, int days) {
+		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0){
+			return null;
+		}
+		
+		Dp dp[][] = new Dp[taskWeight.size() + 1][days + 1];
+		
+		for (int i = 0; i <= taskWeight.size(); ++i){
+			for (int j = 0; j <= days; ++j){
+				dp[i][j] = new Dp();
+			}
+		}
+		
+		int s = 0;
+		
+		for (int i = 1; i <= taskWeight.size(); ++i) {
+			for (int j = 1; j <= days; ++j) {
+				if (j < taskWeight.get(i - 1)){
+					dp[i][j].value = dp[i - 1][j].value;
+				}
+				else {
+					s = dp[i - 1][j].value;
+					int value = 0;
+					
+					for (int k = 1; k * taskWeight.get(i - 1) <= j && k <= taskCount.get(i - 1); k++) {
+						value = dp[i - 1][j - k * taskWeight.get(i - 1)].value + k * taskWeight.get(i - 1);
+						if (s <= value) {
+							dp[i][j].count = k;
+							s = value;
+						}
+					}
+					
+					dp[i][j].value = s;
+				}
+			}
+		}
+		
+		/*
+		 * 测试 矩阵
+		 *
+		for (int i = 0; i <= taskWeight.size(); ++i) {
+			for (int j = 0; j <= days; ++j) {
+				System.out.print(dp[i][j].value + " ");
+			}
+			System.out.println();
+		}
+		
+		/*
+		 * end
+		 */
+		
+		int j = days;
+		Map<Integer, Integer>selected = new LinkedHashMap<>();
+		
+		for (int i = taskWeight.size(); i >= 1; i--) {
+			if (dp[i][j].value > dp[i - 1][j].value) {
+				selected.put(i-1, dp[i][j].count);
+				j = j - dp[i][j].count * taskWeight.get(i - 1);
+			}
+		}
+		
+		return selected;
+	}
 
 	public static int get_people_num(int days, List<Integer> tasks) {
 		if (days <= 0 || tasks == null || tasks.isEmpty()) {
@@ -249,8 +320,8 @@ public class Algorithm {
 		Map<Integer, List<Integer>> solutionsMap = new HashMap<Integer, List<Integer>>();
 		
 		while (true) {
-			Map<Integer, Integer> selected = algorithm2(tasksWeight, tasksCount, days);
-			if (selected.isEmpty()){
+			Map<Integer, Integer> selected = algorithm3(tasksWeight, tasksCount, days);
+			if (selected == null || selected.isEmpty()){
 				break;
 			}
 			
