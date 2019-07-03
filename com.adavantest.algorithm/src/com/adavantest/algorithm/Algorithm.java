@@ -1,26 +1,94 @@
 package com.adavantest.algorithm;
 
+import java.io.PipedInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 
 class Dp {
 	public int value;
 	public int count;
-	
+
 	Dp() {
 		this.value = 0;
 		this.count = 0;
 	}
+
+}
+
+class Dp1 {
+	public int value;
+	public List<Integer> counts;
+
+	Dp1() {
+		this.value = 0;
+		this.counts = new ArrayList<Integer>();
+	}
+
+	void addLast(int count) {
+		counts.add(count);
+	}
+
+	void removeAll() {
+		if (!counts.isEmpty()) {
+			counts.clear();
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "Dp1 [value=" + value + ", counts=" + counts + "]";
+	}
+}
+
+class TaskNode {
+	public TaskNode parent;
+	public List<TaskNode> childrens;
+	public List<Integer> values;
+	static List<List<Integer>> paths = new ArrayList<List<Integer>>();
+	
+	public TaskNode() {
+		parent = null;
+		childrens = new ArrayList<TaskNode>();
+		values = new ArrayList<Integer>();
+	}
+	
+	@Override
+	public String toString() {
+		return "TaskNode [values=" + values + "]";
+	}
+
+	public List<List<Integer>> printToArrayList(TaskNode treeNode, List<Integer> path){
+		
+		if (treeNode == null || path == null) {
+			return paths;
+		}
+		
+		List<Integer> pathTmp = new ArrayList<Integer>();
+		pathTmp.addAll(path);
+		pathTmp.addAll(treeNode.values);
+
+		if (treeNode.childrens.isEmpty()) {
+			paths.add(pathTmp);
+			return paths;
+		}
+		
+		for (TaskNode node : treeNode.childrens) {
+			printToArrayList(node, pathTmp);
+		}
+		return paths;
+	}
 }
 
 public class Algorithm {
-	
-	
+
 	public static final int MAX_DAYS = 101;
 
 	public static void algorithm(List<Integer> taskWeight, List<Integer> taskCount, int days) {
@@ -91,16 +159,16 @@ public class Algorithm {
 
 	public static void algorithm1(List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		Dp dp[][] = new Dp[taskWeight.size() + 1][days + 1];
-		
-		for (int i = 0; i <= taskWeight.size(); ++i){
-			for (int j = 0; j <= days; ++j){
+
+		for (int i = 0; i <= taskWeight.size(); ++i) {
+			for (int j = 0; j <= days; ++j) {
 				dp[i][j] = new Dp();
 			}
 		}
-		
+
 		int path[][] = new int[taskWeight.size() + 1][days + 1];
 		int s = 0;
-		
+
 		for (int i = 1; i <= taskWeight.size(); ++i) {
 			for (int j = 1; j <= days; ++j) {
 				if (j - taskWeight.get(i - 1) < 0)
@@ -174,22 +242,21 @@ public class Algorithm {
 		// System.out.println(selected);
 
 	}
-	
-	
+
 	/*
 	 * 第一次 提交版本
 	 */
 	public static Map<Integer, Integer> algorithm2(List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		Dp dp[][] = new Dp[taskWeight.size() + 1][days + 1];
-		
-		for (int i = 0; i <= taskWeight.size(); ++i){
-			for (int j = 0; j <= days; ++j){
+
+		for (int i = 0; i <= taskWeight.size(); ++i) {
+			for (int j = 0; j <= days; ++j) {
 				dp[i][j] = new Dp();
 			}
 		}
-		
+
 		int s = 0;
-		
+
 		for (int i = 1; i <= taskWeight.size(); ++i) {
 			for (int j = 1; j <= days; ++j) {
 				if (j - taskWeight.get(i - 1) < 0)
@@ -197,7 +264,7 @@ public class Algorithm {
 				else {
 					s = dp[i - 1][j].value;
 					int value = 0;
-					
+
 					for (int k = 1; k * taskWeight.get(i - 1) <= j && k <= taskCount.get(i - 1); k++) {
 						value = dp[i - 1][j - k * taskWeight.get(i - 1)].value + k * taskWeight.get(i - 1);
 						if (s <= value) {
@@ -205,94 +272,132 @@ public class Algorithm {
 							s = value;
 						}
 					}
-					
+
 					dp[i][j].value = s;
 //					System.out.println(i + "." + j + " = " + dp[i][j].count);
-					
+
 				}
 			}
 		}
-		
+
 		int j = days;
-		Map<Integer, Integer>selected = new LinkedHashMap<>();
-		
+		Map<Integer, Integer> selected = new LinkedHashMap<>();
+
 		for (int i = taskWeight.size(); i >= 1; i--) {
 			if (dp[i][j].value > dp[i - 1][j].value) {
-				selected.put(i-1, dp[i][j].count);
+				selected.put(i - 1, dp[i][j].count);
 				j = j - dp[i][j].count * taskWeight.get(i - 1);
 			}
 		}
-		
+
 		return selected;
 	}
-	
+
 	/*
 	 * optimized DP algorithm
 	 */
-	public static Map<Integer, Integer> algorithm3(List<Integer> taskWeight, List<Integer> taskCount, int days) {
-		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0){
+	public static List<List<Integer>> getALLMostOptimizedSolutions(List<Integer> taskWeight, List<Integer> taskCount, int days) {
+		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0) {
 			return null;
 		}
-		
-		Dp dp[][] = new Dp[taskWeight.size() + 1][days + 1];
-		
-		for (int i = 0; i <= taskWeight.size(); ++i){
-			for (int j = 0; j <= days; ++j){
-				dp[i][j] = new Dp();
+
+		Dp1 dp[][] = new Dp1[taskWeight.size() + 1][days + 1];
+
+		for (int i = 0; i <= taskWeight.size(); ++i) {
+			for (int j = 0; j <= days; ++j) {
+				dp[i][j] = new Dp1();
 			}
 		}
-		
-		int s = 0;
-		
+
 		for (int i = 1; i <= taskWeight.size(); ++i) {
 			for (int j = 1; j <= days; ++j) {
-				if (j < taskWeight.get(i - 1)){
+				if (j < taskWeight.get(i - 1)) {
 					dp[i][j].value = dp[i - 1][j].value;
-				}
-				else {
-					s = dp[i - 1][j].value;
+					dp[i][j].addLast(0);
+				} else {
 					int value = 0;
-					
-					for (int k = 1; k * taskWeight.get(i - 1) <= j && k <= taskCount.get(i - 1); k++) {
+
+					for (int k = 0; k * taskWeight.get(i - 1) <= j && k <= taskCount.get(i - 1); k++) {
 						value = dp[i - 1][j - k * taskWeight.get(i - 1)].value + k * taskWeight.get(i - 1);
-						if (s <= value) {
-							dp[i][j].count = k;
-							s = value;
+
+						if (dp[i][j].value < value) {
+							dp[i][j].value = value;
+							dp[i][j].removeAll();
+							dp[i][j].addLast(k);
+						} else if (dp[i][j].value == value) {
+							dp[i][j].addLast(k);
 						}
+
 					}
-					
-					dp[i][j].value = s;
+
 				}
 			}
 		}
-		
+
 		/*
 		 * 测试 矩阵
-		 *
+		 */
 		for (int i = 0; i <= taskWeight.size(); ++i) {
 			for (int j = 0; j <= days; ++j) {
 				System.out.print(dp[i][j].value + " ");
 			}
 			System.out.println();
 		}
-		
+
+		for (int i = 0; i <= taskWeight.size(); ++i) {
+			for (int j = 0; j <= days; ++j) {
+				System.out.print(dp[i][j].counts + " ");
+			}
+			System.out.println();
+		}
+
 		/*
 		 * end
 		 */
 		
-		int j = days;
-		Map<Integer, Integer>selected = new LinkedHashMap<>();
+		TaskNode rootNode = new TaskNode();
+		fun1(dp, taskWeight.size(), days, taskWeight, taskCount, rootNode);
 		
-		for (int i = taskWeight.size(); i >= 1; i--) {
-			if (dp[i][j].value > dp[i - 1][j].value) {
-				selected.put(i-1, dp[i][j].count);
-				j = j - dp[i][j].count * taskWeight.get(i - 1);
-			}
-		}
-		
-		return selected;
+		List<List<Integer>> allSolutions = rootNode.printToArrayList(rootNode, new ArrayList<Integer>());
+
+		return allSolutions;
 	}
 
+	public static void fun1(Dp1[][] valueMatrix, int row, int column, List<Integer> taskWeight, List<Integer> taskCount,
+			TaskNode results) {
+		if (valueMatrix == null || row < 0 || column < 0 || taskWeight == null || taskCount == null
+				|| results == null) {
+			return;
+		}
+
+		if (valueMatrix[row][column].counts.isEmpty()) {
+			return;
+		}
+
+		for (Integer count : valueMatrix[row][column].counts) {
+			if (count == 0) {
+//				TaskNode taskNode = new TaskNode();
+//				results.childrens.add(taskNode);
+//				taskNode.parent = results;
+				fun1(valueMatrix, row-1, column, taskWeight, taskCount,	results);
+				
+			}else {
+				TaskNode taskNode = new TaskNode();
+				results.childrens.add(taskNode);
+				taskNode.parent = results;
+				
+				int indexCount = count;
+				
+				while (indexCount > 0) {
+					taskNode.values.add(taskWeight.get(row - 1));
+					indexCount--;
+				}
+				
+				fun1(valueMatrix, row-1, column - count * taskWeight.get(row - 1), taskWeight, taskCount,	taskNode);
+			}
+		}
+	}
+	
 	public static int get_people_num(int days, List<Integer> tasks) {
 		if (days <= 0 || tasks == null || tasks.isEmpty()) {
 			return -1;
@@ -319,36 +424,114 @@ public class Algorithm {
 		int minBox = 0;
 		Map<Integer, List<Integer>> solutionsMap = new HashMap<Integer, List<Integer>>();
 		
+		List<List<Integer>> allSelected = getALLMostOptimizedSolutions(tasksWeight, tasksCount, days);
+		System.out.println(allSelected);
+
 		while (true) {
-			Map<Integer, Integer> selected = algorithm3(tasksWeight, tasksCount, days);
-			if (selected == null || selected.isEmpty()){
+			Map<Integer, Integer> selected = algorithm2(tasksWeight, tasksCount, days);
+			if (selected == null || selected.isEmpty()) {
 				break;
 			}
-			
+
 			List<Integer> singleSolution = new ArrayList<>();
-			
-			for (Entry<Integer, Integer> entry : selected.entrySet()){
+
+			for (Entry<Integer, Integer> entry : selected.entrySet()) {
 				int index = entry.getKey();
-				
+
 				int compare = tasksCount.get(index) - entry.getValue();
 
 				/*
 				 * store single solution
 				 */
-				for (int i = 1; i <= entry.getValue(); ++i){
+				for (int i = 1; i <= entry.getValue(); ++i) {
+					singleSolution.add(tasksWeight.get(index));
+				}
+
+				if (compare == 0) {
+					tasksCount.remove(index);
+					tasksWeight.remove(index);
+				} else {
+					tasksCount.set(index, compare);
+				}
+
+			}
+
+			if (tasksWeight.isEmpty() || tasksCount.isEmpty()) {
+				minBox++;
+				solutionsMap.put(minBox, singleSolution);
+				break;
+			}
+
+			minBox++;
+			solutionsMap.put(minBox, singleSolution);
+		}
+
+		for (List<Integer> solutions : solutionsMap.values()) {
+			for (int i = solutions.size() - 1; i >= 0; --i) {
+				System.out.print(solutions.get(i) + " ");
+			}
+			System.out.println();
+		}
+
+		return minBox;
+	}
+	
+	public static int get_people_num1(int days, List<Integer> tasks) {
+		if (days <= 0 || tasks == null || tasks.isEmpty()) {
+			return -1;
+		}
+		
+		int buttom[] = new int[MAX_DAYS];
+		
+		for (Integer taskInteger : tasks) {
+			if (taskInteger < 0 || taskInteger > days) {
+				return -1;
+			}
+			buttom[taskInteger]++;
+		}
+		
+		List<Integer> tasksCount = new ArrayList<>();
+		List<Integer> tasksWeight = new ArrayList<>();
+		for (int i = 0; i < buttom.length; ++i) {
+			if (buttom[i] != 0) {
+				tasksCount.add(buttom[i]);
+				tasksWeight.add(i);
+			}
+		}
+		
+		int minBox = 0;
+		Map<Integer, List<Integer>> solutionsMap = new HashMap<Integer, List<Integer>>();
+		
+		while (true) {
+			Map<Integer, Integer> selected = algorithm2(tasksWeight, tasksCount, days);
+			if (selected == null || selected.isEmpty()) {
+				break;
+			}
+			
+			List<Integer> singleSolution = new ArrayList<>();
+			
+			for (Entry<Integer, Integer> entry : selected.entrySet()) {
+				int index = entry.getKey();
+				
+				int compare = tasksCount.get(index) - entry.getValue();
+				
+				/*
+				 * store single solution
+				 */
+				for (int i = 1; i <= entry.getValue(); ++i) {
 					singleSolution.add(tasksWeight.get(index));
 				}
 				
-				if (compare == 0){
+				if (compare == 0) {
 					tasksCount.remove(index);
 					tasksWeight.remove(index);
-				}else{
+				} else {
 					tasksCount.set(index, compare);
 				}
 				
 			}
 			
-			if (tasksWeight.isEmpty() || tasksCount.isEmpty()){
+			if (tasksWeight.isEmpty() || tasksCount.isEmpty()) {
 				minBox++;
 				solutionsMap.put(minBox, singleSolution);
 				break;
@@ -358,13 +541,13 @@ public class Algorithm {
 			solutionsMap.put(minBox, singleSolution);
 		}
 		
-		for (List<Integer> solutions : solutionsMap.values()){
-			for (int i = solutions.size() - 1; i >= 0; --i){
+		for (List<Integer> solutions : solutionsMap.values()) {
+			for (int i = solutions.size() - 1; i >= 0; --i) {
 				System.out.print(solutions.get(i) + " ");
 			}
 			System.out.println();
 		}
-
+		
 		return minBox;
 	}
 
