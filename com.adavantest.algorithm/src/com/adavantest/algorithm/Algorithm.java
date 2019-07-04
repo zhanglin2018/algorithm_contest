@@ -1,6 +1,7 @@
 package com.adavantest.algorithm;
 
 import java.io.PipedInputStream;
+import java.security.Signature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -473,21 +474,21 @@ public class Algorithm {
 		});
 		
 		//case 1
-//		List<List<List<Integer>>> selected = new ArrayList<>();
-//		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
-//			if (entry.getValue() <= allSolutionMean && selected.size() <= 5) {
-//				selected.add(entry.getKey());
-//			}else {
-//				break;
-//			}
-//		}
-		
-//		 case 2
 		List<List<List<Integer>>> selected = new ArrayList<>();
 		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
-			selected.add(entry.getKey());
-			break;
+			if (entry.getValue() <= allSolutionMean && selected.size() <= 1) {
+				selected.add(entry.getKey());
+			}else {
+				break;
+			}
 		}
+		
+//		 case 2
+//		List<List<List<Integer>>> selected = new ArrayList<>();
+//		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
+//			selected.add(entry.getKey());
+//			break;
+//		}
 		
 		// case 2
 //		List<List<List<Integer>>> selected = new ArrayList<>();
@@ -637,11 +638,39 @@ public class Algorithm {
 		int minBox;
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 
-//		System.out.println(allSolutions);
 
+		minBox = allSolutions.get(0).size();
+		int len = 0;
+		List<List<Integer>> selectedList = allSolutions.get(0);
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			len = singleSolution.size();
+			if (minBox > len){
+				minBox = len;
+				selectedList = singleSolution;
+			}
+		}
+
+		minBox -= 1;
+		
+		//print
+		for (List<Integer> values : selectedList) {
+			for (Integer value : values) {
+				System.out.print(value + " ");
+			}
+			System.out.println();
+		}
+		
+		return minBox;
+	}
+	private static int getOptimiedBoxNum1(TaskNode rootNode) {
+		int minBox;
+		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
+		
+//		System.out.println(allSolutions);
+		
 		Deque<List<List<Integer>>> optimizedSolutionsQueue = new LinkedList<List<List<Integer>>>();
 		optimizedSolutionsQueue.addLast(allSolutions.get(0));
-
+		
 		for (List<List<Integer>> singleSolution : allSolutions) {
 			while (!optimizedSolutionsQueue.isEmpty()) {
 				if (optimizedSolutionsQueue.peekLast().size() > singleSolution.size()) {
@@ -650,14 +679,14 @@ public class Algorithm {
 					break;
 				}
 			}
-
+			
 			if (optimizedSolutionsQueue.isEmpty()
 					|| optimizedSolutionsQueue.peekLast().size() == singleSolution.size()) {
 				optimizedSolutionsQueue.addLast(singleSolution);
 			}
-
+			
 		}
-
+		
 		minBox = optimizedSolutionsQueue.getFirst().size() - 1;
 		
 		//print
