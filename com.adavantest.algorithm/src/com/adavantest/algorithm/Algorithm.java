@@ -18,6 +18,7 @@ import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonActionListener;
 import javax.swing.tree.TreeNode;
 
 import java.util.Queue;
+import java.util.Random;
 
 class Dp {
 	public int value;
@@ -146,9 +147,237 @@ class TaskNode {
 	}
 }
 
-public class Algorithm {
+interface SelectedCallBack{
+	List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions);
+}
 
+class MinExpectationSelected implements SelectedCallBack{
+
+	@Override
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions) {
+		if (allSolutions == null || allSolutions.isEmpty()) {
+			return null;
+		}
+		
+		if (allSolutions.size() == 1){
+			return allSolutions;
+		}
+		
+		int buttom[] = new int[Algorithm.MAX_DAYS];
+		double buttomProblem[] = new double[Algorithm.MAX_DAYS];
+		int countsSum = 0;
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+			for (Integer value : itegrationList) {
+				buttom[value]++;
+				countsSum++;
+			}
+			
+		}
+		
+		for (int i=0; i<buttom.length; ++i) {
+			buttomProblem[i] = buttom[i] / (double)countsSum;
+		} 
+		
+		Map<List<List<Integer>>, Double> meanValueCache = new HashMap<>();
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+			double singleSum = 0.0;
+			for (Integer value : itegrationList) {
+				singleSum += value * buttomProblem[value];
+			}
+			
+			meanValueCache.put(singleSolution, singleSum);
+		}
+		
+		List<Map.Entry<List<List<Integer>>, Double>> listDataEntries = new ArrayList<>(meanValueCache.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Double>>() {
+			@Override
+			public int compare(Entry<List<List<Integer>>, Double> o1, Entry<List<List<Integer>>, Double> o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		
+		//case 1
+		List<List<List<Integer>>> selected = new ArrayList<>();
+		selected.add(listDataEntries.get(0).getKey());
+		
+		return selected;
+	}
+}
+
+class MinProbabilySelected implements SelectedCallBack{
+
+	@Override
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions) {
+		if (allSolutions == null || allSolutions.isEmpty()) {
+			return null;
+		}
+		
+		if (allSolutions.size() == 1){
+			return allSolutions;
+		}
+
+		int buttom[] = new int[Algorithm.MAX_DAYS];
+		double buttomProblem[] = new double[Algorithm.MAX_DAYS];
+		int countsSum = 0;
+
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+
+			for (Integer value : itegrationList) {
+				buttom[value]++;
+				countsSum++;
+			}
+
+		}
+		
+		for (int i=0; i<buttom.length; ++i) {
+			buttomProblem[i] = buttom[i] / (double)countsSum;
+		} 
+		
+		Map<List<List<Integer>>, Double> meanValueCache = new HashMap<>();
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+		    double singleSum = 0.0;
+			for (Integer value : itegrationList) {
+				singleSum += buttomProblem[value];
+			}
+			
+			meanValueCache.put(singleSolution, singleSum);
+		} 
+		
+		
+		List<Map.Entry<List<List<Integer>>, Double>> listDataEntries = new ArrayList<>(meanValueCache.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Double>>() {
+			@Override
+			public int compare(Entry<List<List<Integer>>, Double> o1, Entry<List<List<Integer>>, Double> o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		
+		List<List<List<Integer>>> selected = new ArrayList<>();
+		selected.add(listDataEntries.get(0).getKey());
+		
+		return selected;
+	}
+	
+}
+
+class RandomSelected implements SelectedCallBack{
+
+	@Override
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions) {
+		if (allSolutions == null || allSolutions.isEmpty()) {
+			return null;
+		}
+		
+		if (allSolutions.size() == 1){
+			return allSolutions;
+		}
+		
+		int daysSum = 0;
+		for (List<Integer> singleSolution : allSolutions.get(0)){
+			for (Integer value : singleSolution){
+				daysSum += value;
+			}
+		}
+		
+		if (daysSum != Algorithm.days){
+			return allSolutions;
+		}
+		
+		
+		int buttom[] = new int[Algorithm.MAX_DAYS];
+		double buttomProblem[] = new double[Algorithm.MAX_DAYS];
+		int countsSum = 0;
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+			for (Integer value : itegrationList) {
+				buttom[value]++;
+				countsSum++;
+			}
+			
+		}
+		
+		for (int i=0; i<buttom.length; ++i) {
+			buttomProblem[i] = buttom[i] / (double)countsSum;
+		} 
+		
+		Map<List<List<Integer>>, Double> meanValueCache = new HashMap<>();
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+			double singleSum = 0.0;
+			for (Integer value : itegrationList) {
+				singleSum += value * buttomProblem[value];
+			}
+			
+			meanValueCache.put(singleSolution, singleSum);
+		}
+		
+		List<Map.Entry<List<List<Integer>>, Double>> listDataEntries = new ArrayList<>(meanValueCache.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Double>>() {
+			@Override
+			public int compare(Entry<List<List<Integer>>, Double> o1, Entry<List<List<Integer>>, Double> o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		
+		//random
+		
+		List<List<List<Integer>>> selected = new ArrayList<>();
+
+		int index = 0;
+
+		if (listDataEntries.size() > 5){
+			index = (int)(Math.random() * 5);
+		}
+		
+		selected.add(listDataEntries.get(index).getKey());
+		return selected;
+	}
+}
+
+public class Algorithm {
 	public static final int MAX_DAYS = 101;
+	public static SelectedCallBack selectedAlgorithm = new MinExpectationSelected();
+	public static int days = 0;
+	
+	public static void setDays(int days) {
+		Algorithm.days = days;
+	}
+
+	public static void setSelectedAlgorithm(SelectedCallBack selectedAlgorithm) {
+		Algorithm.selectedAlgorithm = selectedAlgorithm;
+	}
 
 	public static void algorithm(List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		int dp[][] = new int[taskWeight.size() + 1][days + 1];
@@ -411,7 +640,7 @@ public class Algorithm {
 
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 
-		List<List<List<Integer>>> selected = getMostBasSolution(allSolutions, taskWeight, taskCount);
+		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allSolutions);
 
 		return selected;
 	}
@@ -655,40 +884,21 @@ public class Algorithm {
 		}
 	}
 
-	@SuppressWarnings("boxing")
-	public static int get_people_num(int days, List<Integer> tasks) {
-		if (days <= 0 || tasks == null || tasks.isEmpty()) {
-			return -1;
+	
+	public static void printSelectedResult(List<List<Integer>> seleted){
+		if (seleted == null || seleted.isEmpty()){
+			return ;
 		}
-
-		int buttom[] = new int[MAX_DAYS];
-
-		for (Integer taskInteger : tasks) {
-			if (taskInteger < 0 || taskInteger > days) {
-				return -1;
+		
+		for (List<Integer> values : seleted) {
+			for (Integer value : values) {
+				System.out.print(value + " ");
 			}
-			buttom[taskInteger]++;
+			System.out.println();
 		}
-
-		List<Integer> tasksCount = new ArrayList<>();
-		List<Integer> tasksWeight = new ArrayList<>();
-		for (int i = 0; i < buttom.length; ++i) {
-			if (buttom[i] != 0) {
-				tasksCount.add(buttom[i]);
-				tasksWeight.add(i);
-			}
-		}
-
-		int minBox = 0;
-
-		TaskNode rootNode = new TaskNode();
-		initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
-
-		minBox = getOptimiedBoxNum(rootNode);
-		return minBox;
 	}
 
-	private static int getOptimiedBoxNum(TaskNode rootNode) {
+	private static List<List<Integer>> getOptimiedBoxNum(TaskNode rootNode) {
 		int minBox;
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 
@@ -704,18 +914,9 @@ public class Algorithm {
 			}
 		}
 
-		minBox -= 1;
-		
-		//print
-		for (List<Integer> values : selectedList) {
-			for (Integer value : values) {
-				System.out.print(value + " ");
-			}
-			System.out.println();
-		}
-		
-		return minBox;
+		return selectedList;
 	}
+	
 	private static int getOptimiedBoxNum1(TaskNode rootNode) {
 		int minBox;
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
@@ -888,10 +1089,80 @@ public class Algorithm {
 		return minBox;
 	}
 
-	public static void main(String[] args) {
-		int days = 10;
-		List<Integer> tasks = Arrays.asList(new Integer[] { 6, 3, 3, 2, 2, 2, 2 });
-		int minBox = Algorithm.get_people_num1(days, tasks);
+	@SuppressWarnings("boxing")
+	public static int get_people_num(int days, List<Integer> tasks) {
+		if (days <= 0 || tasks == null || tasks.isEmpty()) {
+			return -1;
+		}
+		
+		setDays(days);
+		int buttom[] = new int[MAX_DAYS];
+		
+		for (Integer taskInteger : tasks) {
+			if (taskInteger < 0 || taskInteger > days) {
+				return -1;
+			}
+			buttom[taskInteger]++;
+		}
+		
+		List<Integer> tasksCount = new ArrayList<>();
+		List<Integer> tasksWeight = new ArrayList<>();
+		int taskAllDays = 0;
+		
+		for (int i = 0; i < buttom.length; ++i) {
+			if (buttom[i] != 0) {
+				tasksCount.add(buttom[i]);
+				tasksWeight.add(i);
+				taskAllDays += buttom[i] * i;
+			}
+		}
+		
+		int minBox = 0;
+		int theoreticalMim = taskAllDays/days;
+		
+		if ((taskAllDays % days) != 0){
+			theoreticalMim += 1;
+		}
+		
+		
+		TaskNode rootNode = new TaskNode();
+		List<List<Integer>> selected = null;
+		
+		List<SelectedCallBack> allSelectedCallBacks = new ArrayList<>();
+		allSelectedCallBacks.add(new MinProbabilySelected());
+		
+		for (int i=0; i<300; i++){
+			allSelectedCallBacks.add(new RandomSelected());
+		}
+		
+		setSelectedAlgorithm(new MinExpectationSelected());
+		initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
+		selected = getOptimiedBoxNum(rootNode);
+		minBox = selected.size() - 1;
+		
+		if (minBox == theoreticalMim){
+			printSelectedResult(selected);
+			return minBox;
+		}
+		
+		for (int i=0; i < allSelectedCallBacks.size(); i++){
+			setSelectedAlgorithm(allSelectedCallBacks.get(i));
+			initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
+			List<List<Integer>> tmp = getOptimiedBoxNum(rootNode);
+			if (minBox > (selected.size()-1)){
+				selected = tmp;
+				minBox = selected.size() - 1;
+				
+				if (minBox == theoreticalMim){
+					printSelectedResult(selected);
+					return minBox;
+				}
+			}
+		}
+		
+		printSelectedResult(selected);
+		return minBox;
 	}
+
 }
  
