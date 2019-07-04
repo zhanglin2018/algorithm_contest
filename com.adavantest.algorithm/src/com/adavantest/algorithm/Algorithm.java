@@ -482,12 +482,16 @@ public class Algorithm {
 //			}
 //		}
 		
-		// case 2
+//		 case 2
 		List<List<List<Integer>>> selected = new ArrayList<>();
 		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
 			selected.add(entry.getKey());
 			break;
 		}
+		
+		// case 2
+//		List<List<List<Integer>>> selected = new ArrayList<>();
+//		selected.add(listDataEntries.get(listDataEntries.size()-1).getKey());
 		
 		
 		
@@ -633,7 +637,7 @@ public class Algorithm {
 		int minBox;
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 
-		System.out.println(allSolutions);
+//		System.out.println(allSolutions);
 
 		Deque<List<List<Integer>>> optimizedSolutionsQueue = new LinkedList<List<List<Integer>>>();
 		optimizedSolutionsQueue.addLast(allSolutions.get(0));
@@ -655,6 +659,16 @@ public class Algorithm {
 		}
 
 		minBox = optimizedSolutionsQueue.getFirst().size() - 1;
+		
+		//print
+		List<List<Integer>> valuesList = optimizedSolutionsQueue.getFirst();
+		for (List<Integer> values : valuesList) {
+			for (Integer value : values) {
+				System.out.print(value + " ");
+			}
+			System.out.println();
+		}
+		
 		return minBox;
 	}
 
