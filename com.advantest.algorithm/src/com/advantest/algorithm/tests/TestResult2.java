@@ -149,7 +149,6 @@ public class TestResult2 {
 	public void testAlgorithm15() {
 		int days = 100;
 		int expected = 31;
-		Date startDate = new Date();
 		
 		List<Integer> tasks = Arrays.asList(new Integer[] { 100, 99, 97,97,97,93,93,92,92,88,83,83,79,
 				76,76,75,72,71,70,69,67,66,63,62,62,61,61,51,50,44,44,43,43,40,39,37,37,30,23,
@@ -157,7 +156,6 @@ public class TestResult2 {
 		System.out.println("testAlgorithm15:    " + tasks + "     days: " + days + "     expected: " + expected);
 		Assert.assertEquals(expected, Algorithm.get_people_num(days, tasks));
 		Date endDate = new Date();
-		System.out.println(endDate.getTime() - startDate.getTime());	
 	}
 	
 	@Test

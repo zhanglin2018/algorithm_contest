@@ -447,7 +447,6 @@ public class Algorithm {
 		
 		Map<List<List<Integer>>, Double> meanValueCache = new HashMap<>();
 		
-		double allmeanSum = 0.0;
 		for (List<List<Integer>> singleSolution : allSolutions) {
 			List<Integer> itegrationList = new ArrayList<>();
 			for (List<Integer> value : singleSolution) {
@@ -455,6 +454,69 @@ public class Algorithm {
 			}
 			
 		    double singleSum = 0.0;
+			for (Integer value : itegrationList) {
+				singleSum += buttomProblem[value];
+			}
+			
+			meanValueCache.put(singleSolution, singleSum);
+		} 
+		
+		
+		List<Map.Entry<List<List<Integer>>, Double>> listDataEntries = new ArrayList<>(meanValueCache.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Double>>() {
+			@Override
+			public int compare(Entry<List<List<Integer>>, Double> o1, Entry<List<List<Integer>>, Double> o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		
+		//case1
+		List<List<List<Integer>>> selected = new ArrayList<>();
+		selected.add(listDataEntries.get(0).getKey());
+		
+		return selected;
+	}
+	
+	
+	@SuppressWarnings("boxing")
+	private static List<List<List<Integer>>> getMostBasSolution1(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount) {
+		if (allSolutions == null || taskWeight == null || taskCount == null) {
+			return null;
+		}
+		
+		int buttom[] = new int[MAX_DAYS];
+		double buttomProblem[] = new double[MAX_DAYS];
+		double meanValue[] = new double[MAX_DAYS];
+		int countsSum = 0;
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+			for (Integer value : itegrationList) {
+				buttom[value]++;
+				countsSum++;
+			}
+			
+		}
+		
+		for (int i=0; i<buttom.length; ++i) {
+			buttomProblem[i] = buttom[i] / (double)countsSum;
+		} 
+		
+		Map<List<List<Integer>>, Double> meanValueCache = new HashMap<>();
+		
+		double allmeanSum = 0.0;
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+			double singleSum = 0.0;
 			for (Integer value : itegrationList) {
 				singleSum += value * buttomProblem[value];
 			}
@@ -484,37 +546,16 @@ public class Algorithm {
 		}
 		
 		
-		
-//		 case 2
-		/*
-		List<List<List<Integer>>> selected = new ArrayList<>();
-		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
-			if (entry.getValue() <= allSolutionMean && selected.size() <= 1) {
-				selected.add(entry.getKey());
-			}else {
-				break;
-			}
-		}
-		*/
-		
-//		 case 2
+//		 case 2 
 //		List<List<List<Integer>>> selected = new ArrayList<>();
 //		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
 //			selected.add(entry.getKey());
 //			break;
 //		}
 		
-//		List<List<List<Integer>>> selected = new ArrayList<>();
-//		selected.add(listDataEntries.get(listDataEntries.size()-1).getKey());
-		
 		
 		
 		return selected;
-	}
-
-	private static double getProblemRate(List<Integer> expectedValue, List<Integer> taskWeight,
-			List<Integer> taskCount) {
-		return 0.0;
 	}
 
 	/*
@@ -853,3 +894,4 @@ public class Algorithm {
 		int minBox = Algorithm.get_people_num1(days, tasks);
 	}
 }
+ 
