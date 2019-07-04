@@ -473,23 +473,28 @@ public class Algorithm {
 		});
 		
 		//case 1
-//		List<List<List<Integer>>> selected = new ArrayList<>();
-//		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
-//			if (entry.getValue() <= allSolutionMean && selected.size() <= 5) {
-//				selected.add(entry.getKey());
-//			}else {
-//				break;
-//			}
-//		}
+		
+		List<List<List<Integer>>> selected = new ArrayList<>();
+		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
+			if (entry.getValue() <= allSolutionMean && selected.size() <= 1) {
+				selected.add(entry.getKey());
+			}else {
+				break;
+			}
+		}
+		
+		
 		
 //		 case 2
+		/*
 		List<List<List<Integer>>> selected = new ArrayList<>();
 		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
 			selected.add(entry.getKey());
 			break;
 		}
+		*/
 		
-		// case 2
+		// case 2 error
 //		List<List<List<Integer>>> selected = new ArrayList<>();
 //		selected.add(listDataEntries.get(listDataEntries.size()-1).getKey());
 		
@@ -659,7 +664,7 @@ public class Algorithm {
 		}
 
 		minBox = optimizedSolutionsQueue.getFirst().size() - 1;
-		
+		 
 		//print
 		List<List<Integer>> valuesList = optimizedSolutionsQueue.getFirst();
 		for (List<Integer> values : valuesList) {
