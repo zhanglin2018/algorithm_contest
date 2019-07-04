@@ -3,6 +3,8 @@ package com.adavantest.algorithm;
 import java.io.PipedInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonActionListener;
 import javax.swing.tree.TreeNode;
 
 import java.util.Queue;
@@ -68,22 +71,22 @@ class TaskNode {
 	public String toString() {
 		return "TaskNode [values=" + values + "]";
 	}
-	
+
 	public static List<List<List<Integer>>> getTreeAllPaths(TaskNode treeNode, List<List<Integer>> path) {
 		if (!paths.isEmpty()) {
 			paths.clear();
 		}
-		
+
 		List<List<List<Integer>>> resultList = new ArrayList<List<List<Integer>>>();
 		getTreeAllPathsImp(treeNode, path);
-		
-		for (List<List<Integer>> value: paths) {
+
+		for (List<List<Integer>> value : paths) {
 			resultList.add(value);
 		}
-		
+
 		return resultList;
 	}
-	
+
 	private static List<List<List<Integer>>> getTreeAllPathsImp(TaskNode treeNode, List<List<Integer>> path) {
 
 		if (treeNode == null || path == null) {
@@ -104,37 +107,37 @@ class TaskNode {
 		}
 		return paths;
 	}
-	
+
 	public static List<List<Integer>> getTreeAllPaths1(TaskNode treeNode, List<Integer> path) {
 		if (!paths1.isEmpty()) {
 			paths1.clear();
 		}
-		
+
 		List<List<Integer>> resultList = new ArrayList<List<Integer>>();
 		getTreeAllPathsImp1(treeNode, path);
-		
-		for (List<Integer> value: paths1) {
+
+		for (List<Integer> value : paths1) {
 			resultList.add(value);
 		}
-		
+
 		return resultList;
 	}
-	
+
 	private static List<List<Integer>> getTreeAllPathsImp1(TaskNode treeNode, List<Integer> path) {
-		
+
 		if (treeNode == null || path == null) {
 			return paths1;
 		}
-		
+
 		List<Integer> pathTmp = new ArrayList<Integer>();
 		pathTmp.addAll(path);
 		pathTmp.addAll(treeNode.values);
-		
+
 		if (treeNode.childrens.isEmpty()) {
 			paths1.add(pathTmp);
 			return paths1;
 		}
-		
+
 		for (TaskNode node : treeNode.childrens) {
 			getTreeAllPathsImp1(node, pathTmp);
 		}
@@ -351,8 +354,8 @@ public class Algorithm {
 	/*
 	 * optimized DP algorithm
 	 */
-	public static List<List<List<Integer>>> getALLMostOptimizedSolutions(List<Integer> taskWeight, List<Integer> taskCount,
-			int days) {
+	public static List<List<List<Integer>>> getALLMostOptimizedSolutions(List<Integer> taskWeight,
+			List<Integer> taskCount, int days) {
 		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0) {
 			return null;
 		}
@@ -393,22 +396,161 @@ public class Algorithm {
 		/*
 		 * 测试 矩阵
 		 *
-		for (int i = 0; i <= taskWeight.size(); ++i) {
-			for (int j = 0; j <= days; ++j) {
-				System.out.print(dp[i][j].value + " ");
-			}
-			System.out.println();
+		 * for (int i = 0; i <= taskWeight.size(); ++i) { for (int j = 0; j <= days;
+		 * ++j) { System.out.print(dp[i][j].value + " "); } System.out.println(); }
+		 * 
+		 * for (int i = 0; i <= taskWeight.size(); ++i) { for (int j = 0; j <= days;
+		 * ++j) { System.out.print(dp[i][j].counts + " "); } System.out.println(); }
+		 * 
+		 * /* end
+		 */
+
+		TaskNode rootNode = new TaskNode();
+		fun1(dp, taskWeight.size(), days, taskWeight, taskCount, rootNode);
+
+		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
+
+		List<List<List<Integer>>> selected = getMostBasSolution(allSolutions, taskWeight, taskCount);
+
+		return selected;
+	}
+
+	@SuppressWarnings("boxing")
+	private static List<List<List<Integer>>> getMostBasSolution(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount) {
+		if (allSolutions == null || taskWeight == null || taskCount == null) {
+			return null;
 		}
+
+		int buttom[] = new int[MAX_DAYS];
+		double buttomProblem[] = new double[MAX_DAYS];
+		double meanValue[] = new double[MAX_DAYS];
+		int countsSum = 0;
+
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+
+			for (Integer value : itegrationList) {
+				buttom[value]++;
+				countsSum++;
+			}
+
+		}
+		
+		for (int i=0; i<buttom.length; ++i) {
+			buttomProblem[i] = buttom[i] / (double)countsSum;
+		} 
+		
+		Map<List<List<Integer>>, Double> meanValueCache = new HashMap<>();
+		
+		double allmeanSum = 0.0;
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+			
+		    double singleSum = 0.0;
+			for (Integer value : itegrationList) {
+				singleSum += value * buttomProblem[value];
+			}
+			
+			allmeanSum += singleSum;
+			meanValueCache.put(singleSolution, singleSum);
+		}
+		
+		double allSolutionMean = allmeanSum / allSolutions.size();
+		
+		List<Map.Entry<List<List<Integer>>, Double>> listDataEntries = new ArrayList<>(meanValueCache.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Double>>() {
+			@Override
+			public int compare(Entry<List<List<Integer>>, Double> o1, Entry<List<List<Integer>>, Double> o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		
+		//case 1
+//		List<List<List<Integer>>> selected = new ArrayList<>();
+//		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
+//			if (entry.getValue() <= allSolutionMean && selected.size() <= 5) {
+//				selected.add(entry.getKey());
+//			}else {
+//				break;
+//			}
+//		}
+		
+		// case 2
+		List<List<List<Integer>>> selected = new ArrayList<>();
+		for (Map.Entry<List<List<Integer>>, Double> entry : listDataEntries) {
+			selected.add(entry.getKey());
+			break;
+		}
+		
+		
+		
+		return selected;
+	}
+
+	private static double getProblemRate(List<Integer> expectedValue, List<Integer> taskWeight,
+			List<Integer> taskCount) {
+		return 0.0;
+	}
+
+	/*
+	 * optimized DP algorithm
+	 */
+	public static List<List<List<Integer>>> getALLMostOptimizedSolutions1(List<Integer> taskWeight,
+			List<Integer> taskCount, int days) {
+		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0) {
+			return null;
+		}
+
+		Dp1 dp[][] = new Dp1[taskWeight.size() + 1][days + 1];
 
 		for (int i = 0; i <= taskWeight.size(); ++i) {
 			for (int j = 0; j <= days; ++j) {
-				System.out.print(dp[i][j].counts + " ");
+				dp[i][j] = new Dp1();
 			}
-			System.out.println();
+		}
+
+		for (int i = 1; i <= taskWeight.size(); ++i) {
+			for (int j = 1; j <= days; ++j) {
+				if (j < taskWeight.get(i - 1)) {
+					dp[i][j].value = dp[i - 1][j].value;
+					dp[i][j].addLast(0);
+				} else {
+					int value = 0;
+
+					for (int k = 0; k * taskWeight.get(i - 1) <= j && k <= taskCount.get(i - 1); k++) {
+						value = dp[i - 1][j - k * taskWeight.get(i - 1)].value + k * taskWeight.get(i - 1);
+
+						if (dp[i][j].value < value) {
+							dp[i][j].value = value;
+							dp[i][j].removeAll();
+							dp[i][j].addLast(k);
+						} else if (dp[i][j].value == value) {
+							dp[i][j].addLast(k);
+						}
+
+					}
+
+				}
+			}
 		}
 
 		/*
-		 * end
+		 * 测试 矩阵
+		 *
+		 * for (int i = 0; i <= taskWeight.size(); ++i) { for (int j = 0; j <= days;
+		 * ++j) { System.out.print(dp[i][j].value + " "); } System.out.println(); }
+		 * 
+		 * for (int i = 0; i <= taskWeight.size(); ++i) { for (int j = 0; j <= days;
+		 * ++j) { System.out.print(dp[i][j].counts + " "); } System.out.println(); }
+		 * 
+		 * /* end
 		 */
 
 		TaskNode rootNode = new TaskNode();
@@ -479,10 +621,10 @@ public class Algorithm {
 		}
 
 		int minBox = 0;
-		
+
 		TaskNode rootNode = new TaskNode();
 		initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
-		
+
 		minBox = getOptimiedBoxNum(rootNode);
 		return minBox;
 	}
@@ -492,25 +634,26 @@ public class Algorithm {
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 
 		System.out.println(allSolutions);
-		
+
 		Deque<List<List<Integer>>> optimizedSolutionsQueue = new LinkedList<List<List<Integer>>>();
 		optimizedSolutionsQueue.addLast(allSolutions.get(0));
-		
+
 		for (List<List<Integer>> singleSolution : allSolutions) {
 			while (!optimizedSolutionsQueue.isEmpty()) {
 				if (optimizedSolutionsQueue.peekLast().size() > singleSolution.size()) {
 					optimizedSolutionsQueue.pollLast();
-				}else {
+				} else {
 					break;
 				}
 			}
-			
-			if (optimizedSolutionsQueue.isEmpty() || optimizedSolutionsQueue.peekLast().size() == singleSolution.size()) {
+
+			if (optimizedSolutionsQueue.isEmpty()
+					|| optimizedSolutionsQueue.peekLast().size() == singleSolution.size()) {
 				optimizedSolutionsQueue.addLast(singleSolution);
 			}
-			
+
 		}
-		
+
 		minBox = optimizedSolutionsQueue.getFirst().size() - 1;
 		return minBox;
 	}
@@ -529,7 +672,7 @@ public class Algorithm {
 			for (List<Integer> value : singleSolution) {
 				itegrationList.addAll(value);
 			}
-			
+
 			TaskNode childNode = new TaskNode();
 			childNode.parent = parentNode;
 			parentNode.childrens.add(childNode);
@@ -651,6 +794,6 @@ public class Algorithm {
 	public static void main(String[] args) {
 		int days = 10;
 		List<Integer> tasks = Arrays.asList(new Integer[] { 6, 3, 3, 2, 2, 2, 2 });
-		int minBox = Algorithm.get_people_num(days, tasks);
+		int minBox = Algorithm.get_people_num1(days, tasks);
 	}
 }
