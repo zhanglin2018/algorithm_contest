@@ -1,6 +1,7 @@
 package com.advantest.algorithm.tests;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
@@ -131,27 +132,32 @@ public class TestResult2 {
 		Assert.assertEquals(expected, Algorithm.get_people_num(days, tasks));
 		System.out.println();	}
 
-	@Test
+	@Test 
 	public void testAlgorithm14() {
 		int days = 28;
 		int expected = 3;
+		Date startDate = new Date();
 		List<Integer> tasks = Arrays.asList(new Integer[] { 4, 4, 6, 7, 8, 9, 9, 9, 12, 15 });
 		
 		System.out.println("testAlgorithm14:    " + tasks + "     days: " + days + "     expected: " + expected);
 		Assert.assertEquals(expected, Algorithm.get_people_num(days, tasks));
-		System.out.println();	
+		Date endDate = new Date();
+		System.out.println(endDate.getTime() - startDate.getTime());	
 		}
 	
 	@Test
 	public void testAlgorithm15() {
 		int days = 100;
 		int expected = 31;
+		Date startDate = new Date();
+		
 		List<Integer> tasks = Arrays.asList(new Integer[] { 100, 99, 97,97,97,93,93,92,92,88,83,83,79,
 				76,76,75,72,71,70,69,67,66,63,62,62,61,61,51,50,44,44,43,43,40,39,37,37,30,23,
 				20,19,18,17,15,14,13,13,12,8,8 });
 		System.out.println("testAlgorithm15:    " + tasks + "     days: " + days + "     expected: " + expected);
 		Assert.assertEquals(expected, Algorithm.get_people_num(days, tasks));
-		System.out.println();	
+		Date endDate = new Date();
+		System.out.println(endDate.getTime() - startDate.getTime());	
 	}
 	
 	@Test
@@ -161,7 +167,7 @@ public class TestResult2 {
 	    List<Integer> tasks = Arrays.asList(new Integer[] { 92,89,87,84,82, 82, 81,75, 73,71,67, 67,63,59,
 		    57,56,52,49,48,47,46,41, 39, 38, 36, 35, 34, 34, 30, 29, 26, 21, 20, 19, 18, 15, 15, 13, 11,
 		    10,10,10,9,8,8,7,6,6,6,3 });
-	    System.out.println("testAlgorithm15:    " + tasks + "     days: " + days + "     expected: " + expected);
+	    System.out.println("testAlgorithm16:    " + tasks + "     days: " + days + "     expected: " + expected);
 	    Assert.assertEquals(expected, Algorithm.get_people_num(days, tasks));
 	    System.out.println();	
 	}
