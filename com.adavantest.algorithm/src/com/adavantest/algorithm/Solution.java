@@ -31,7 +31,7 @@ public class Solution {
             .map(Integer::parseInt)
             .collect(toList());
 
-        int result = Result.get_people_num(days, tasks);
+        int result = Result1.get_people_num(days, tasks);
 
         bufferedWriter.write(String.valueOf(result));
         bufferedWriter.newLine();
