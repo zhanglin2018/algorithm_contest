@@ -1,0 +1,33 @@
+void multiplybag(int w, int v, int n) {
+    if (n == 0 || v == 0) return; //数量或价值为0都没有意义，直接忽略
+ 
+    if (n == 1) bag01(w, v);
+    else if (n * v >= V) completebag(w, v);
+    else {
+        for (int i = 0; i < v; i++) {
+            int head1 = 0, tail1 = -1, head2 = 0, tail2 = -1;//注意队列是闭区间
+            int cnt = 0;
+            for (int j = i; j <= V; j += v) {
+                if (tail1 == head1 + n) {//若队列1大小达到指定值，则第一个元素出队
+                    if (q1[head1] == q2[head2]) ++head2;//若q2的第一个元素等于q1出队的元素，则该元素也出队
+                    ++head1;
+                }
+ 
+                int temp = dp[j] - cnt * w;
+ 
+                q1[++tail1] = temp;
+ 
+                while (tail2 >= head2 && q2[tail2] < temp) --tail2;//删除辅助队列q2所有小于temp的元素，使q2单调递减
+                q2[++tail2] = temp;
+ 
+                dp[j] = q2[head2] + cnt * w;//q2队首元素为q1所有状态的最大值
+                cnt++;
+            }
+        }
+    }
+
+--------------------- 
+作者：hao_zong_yin 
+来源：CSDN 
+原文：https://blog.csdn.net/hao_zong_yin/article/details/72457425 
+版权声明：本文为博主原创文章，转载请附上博文链接！

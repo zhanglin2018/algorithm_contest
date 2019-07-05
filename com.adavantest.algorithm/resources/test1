@@ -29,3 +29,50 @@
 66 
 62 
 62 
+
+
+
+
+
+#include <iostream>
+#include <deque>
+#include <algorithm>
+
+using namespace std;
+
+struct Pack
+{
+    int sum, cost;
+    Pack(int s, int c) : sum (s), cost(c) {}
+};
+
+const int Maxv = 1001;
+deque <Pack> Q;
+int N, V, F[Maxv];
+
+int main()
+{
+    cin >> N >> V;
+    for (int i = 1, p, w, c; i <= N; i ++)
+    {
+        cin >> p >> w >> c; p = min(p, V / w);
+        for (int j = 0; j < w; j ++)
+        {
+            Q.clear();
+            for (int k = 0; k <= (V - j) / w; k ++)
+            {
+                int y = F[k * w + j] - k * c;
+                while (Q.size() && Q.back().cost <= y) Q.pop_back();
+                Q.push_back(Pack(k, y));
+                if (Q.front().sum < k - c) Q.pop_front();
+                F[k * w + j] = Q.front().cost + k * c;
+            }
+        }
+    }
+    cout << F[V] << endl;
+    return 0;
+--------------------- 
+作者：yoer77 
+来源：CSDN 
+原文：https://blog.csdn.net/yoer77/article/details/70943462 
+版权声明：本文为博主原创文章，转载请附上博文链接！
