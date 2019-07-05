@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import javax.swing.ListModel;
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
 import org.omg.CORBA.INITIALIZE;
 
 class Dp1 {
@@ -183,8 +186,8 @@ class TaskSolutionsManager {
 				remainDays = days - remainDays;
 
 				if (Result.updateTaskList(tasksWeightTmp, tasksCountTmp, expectedValue)) {
-					List<List<List<Integer>>> allOptimizedSolutions = Result
-							.getALLOptimizedSolutions(tasksWeightTmp, tasksCountTmp, remainDays);
+					List<List<List<Integer>>> allOptimizedSolutions = Result.getALLOptimizedSolutions(tasksWeightTmp,
+							tasksCountTmp, remainDays);
 
 					for (List<List<Integer>> singleSolution : allOptimizedSolutions) {
 						List<Integer> itegrationList = new ArrayList<>();
@@ -193,7 +196,7 @@ class TaskSolutionsManager {
 						for (List<Integer> value : singleSolution) {
 							itegrationList.addAll(value);
 						}
-						
+
 						Collections.sort(itegrationList, new Comparator<Integer>() {
 
 							@Override
@@ -201,7 +204,7 @@ class TaskSolutionsManager {
 								// TODO Auto-generated method stub
 								return o1.compareTo(o2);
 							}
-							
+
 						});
 
 						taskSolutionSet.add(itegrationList);
@@ -210,11 +213,11 @@ class TaskSolutionsManager {
 				}
 			}
 		}
-		
+
 		System.out.println(taskSolutionSet);
 		return true;
 	}
-	
+
 //	public static boolean initializeSolution1(List<Integer> tasksWeight, List<Integer> tasksCount, int days) {
 //		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0) {
 //			return false;
@@ -259,81 +262,84 @@ class TaskSolutionsManager {
 //		System.out.println(taskSolutionSet);
 //		return true;
 //	}
-	
+
 	public static boolean initializeSolution2(List<Integer> tasksWeight, List<Integer> tasksCount, int days) {
 		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0) {
 			return false;
 		}
-		
+
 		taskSolutionSet.clear();
-		
+
 		Result.setSelectedAlgorithm(new NormalSelected());
-		
+
 		List<Integer> expectedValue = new ArrayList<>();
 		for (int i = 0; i < tasksWeight.size(); ++i) {
 			expectedValue.clear();
 			for (int j = 1; j <= tasksCount.get(i); ++j) {
 				expectedValue.add(tasksWeight.get(i));
-				
+
 				List<Integer> tasksWeightTmp = new ArrayList<>();
-				for (int k=i; k<tasksWeight.size(); k++) {
+				for (int k = i; k < tasksWeight.size(); k++) {
 					tasksWeightTmp.add(tasksWeight.get(k));
 				}
-				
+
 				List<Integer> tasksCountTmp = new ArrayList<>();
-				for (int k=i; k<tasksWeight.size(); k++) {
+				for (int k = i; k < tasksWeight.size(); k++) {
 					tasksCountTmp.add(tasksCount.get(k));
 				}
-				
+
 				int remainDays = 0;
 				for (Integer singDays : expectedValue) {
 					remainDays += singDays;
 				}
-				
+
 				remainDays = days - remainDays;
-				
+
 				if (Result.updateTaskList(tasksWeightTmp, tasksCountTmp, expectedValue)) {
-					List<List<List<Integer>>> allOptimizedSolutions = Result
-							.getSeletedOptimezedSolution(tasksWeightTmp, tasksCountTmp, remainDays);
-					
+					List<List<List<Integer>>> allOptimizedSolutions = Result.getSeletedOptimezedSolution(tasksWeightTmp,
+							tasksCountTmp, remainDays);
+
 					for (List<List<Integer>> singleSolution : allOptimizedSolutions) {
 						List<Integer> itegrationList = new ArrayList<>();
 						itegrationList.addAll(expectedValue);
-						
+
 						for (List<Integer> value : singleSolution) {
 							itegrationList.addAll(value);
 						}
-						
+
 						Collections.sort(itegrationList, new Comparator<Integer>() {
-							
+
 							@Override
 							public int compare(Integer o1, Integer o2) {
 								// TODO Auto-generated method stub
 								return o1.compareTo(o2);
 							}
-							
+
 						});
-						
+
 						taskSolutionSet.add(itegrationList);
-						
+
 					}
 				}
 			}
 		}
-		
+
 		System.out.println(taskSolutionSet);
 		return true;
 	}
 }
 
 interface SelectedCallBack {
-	List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions);
+	List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions, List<Integer> taskWeight,
+			List<Integer> taskCount, int days);
+
 }
 
 class NormalSelected implements SelectedCallBack {
 
 	@Override
-	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions) {
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		if (allSolutions == null || allSolutions.isEmpty()) {
 			return null;
 		}
@@ -343,10 +349,87 @@ class NormalSelected implements SelectedCallBack {
 
 }
 
+class PruneSelected implements SelectedCallBack {
+	@SuppressWarnings("boxing")
+	@Override
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount, int days) {
+		if (allSolutions == null || allSolutions.isEmpty() || taskWeight == null || taskWeight.isEmpty()
+				|| taskCount == null || taskCount.isEmpty() || days <= 0) {
+			return Collections.emptyList();
+		}
+		
+		if (allSolutions.size() == 1) {
+			return allSolutions;
+		}
+
+		Map<List<List<Integer>>, Integer> solutionsCacheMap = new HashMap<>();
+
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+
+			List<Integer> tasksWeightTmp = new ArrayList<>();
+			tasksWeightTmp.addAll(taskWeight);
+
+			List<Integer> tasksCountTmp = new ArrayList<>();
+			tasksCountTmp.addAll(taskCount);
+
+			if (Result.updateTaskList(tasksWeightTmp, tasksCountTmp, itegrationList)) {
+				List<List<List<Integer>>> allOptimizedSolutions = Result.getALLOptimizedSolutions(tasksWeightTmp,
+						tasksCountTmp, days);
+
+				solutionsCacheMap.put(singleSolution, allOptimizedSolutions.size());
+			}
+		}
+
+		List<Map.Entry<List<List<Integer>>, Integer>> listDataEntries = new ArrayList<>(solutionsCacheMap.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Integer>>() {
+			@Override
+			public int compare(Entry<List<List<Integer>>, Integer> o1, Entry<List<List<Integer>>, Integer> o2) {
+				return o2.getValue().compareTo(o1.getValue());
+			}
+		});
+		
+		/*
+		 * find the most optimized solution
+		 */
+		int maxValue = listDataEntries.get(0).getValue();
+		int sizeNum = Result.convertFormatToList(listDataEntries.get(0).getKey()).size();
+		double expected = Result.getExpectedValue(Result.convertFormatToList(listDataEntries.get(0).getKey()));
+		List<List<Integer>> selectedList = new ArrayList<>();
+		
+		for (Map.Entry<List<List<Integer>>, Integer> entry: listDataEntries) {
+			if (entry.getValue() < maxValue) {
+				break;
+			}
+			
+			if (Result.getExpectedValue(Result.convertFormatToList(entry.getKey())) < expected) {
+				selectedList.addAll(entry.getKey());
+			}
+		}
+		
+		if (selectedList.isEmpty()) {
+			selectedList = listDataEntries.get(0).getKey();
+		}
+		
+
+		// case 1
+		List<List<List<Integer>>> selectedSolution = new ArrayList<>();
+		selectedSolution.add(selectedList);
+
+		return selectedSolution;
+	}
+}
+
 class MinExpectationSelected implements SelectedCallBack {
 
 	@Override
-	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions) {
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		if (allSolutions == null || allSolutions.isEmpty()) {
 			return null;
 		}
@@ -411,7 +494,8 @@ class MinExpectationSelected implements SelectedCallBack {
 class MinProbabilySelected implements SelectedCallBack {
 
 	@Override
-	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions) {
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		if (allSolutions == null || allSolutions.isEmpty()) {
 			return null;
 		}
@@ -476,7 +560,8 @@ class MinProbabilySelected implements SelectedCallBack {
 class RandomSelected implements SelectedCallBack {
 
 	@Override
-	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions) {
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount, int days) {
 		if (allSolutions == null || allSolutions.isEmpty()) {
 			return null;
 		}
@@ -560,8 +645,37 @@ class RandomSelected implements SelectedCallBack {
 public class Result {
 	public static final int MAX_DAYS = 101;
 	public static SelectedCallBack selectedAlgorithm = new MinExpectationSelected();
+	public static double[] probilityRate;
 	public static int days = 0;
 
+	@SuppressWarnings("boxing")
+	public static void initializeProbilityRate(List<Integer> taskWeight, List<Integer> taskCount) {
+		probilityRate = new double[MAX_DAYS];
+		
+		int taskSum = 0;
+		for (int i = 0; i<taskWeight.size(); ++i) {
+			probilityRate[taskWeight.get(i)] = taskCount.get(i);
+			taskSum += taskCount.get(i);
+		}
+		
+		for (int i=0; i<probilityRate.length; ++i) {
+			probilityRate[i] = probilityRate[i] / taskSum;
+		}
+	}
+	
+	public static double getExpectedValue(List<Integer> values) {
+		if (values == null || values.isEmpty()) {
+			return 0.0;
+		}
+		
+		double expectedValue = 0.0;
+		for (Integer value : values) {
+			expectedValue += probilityRate[value];
+		}
+		
+		return expectedValue;
+	}
+	
 	public static void setDays(int days) {
 		Result.days = days;
 	}
@@ -646,28 +760,29 @@ public class Result {
 		}
 
 		List<List<List<Integer>>> allSolutions = getALLOptimizedSolutions(taskWeight, taskCount, days);
-		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allSolutions);
-		
+		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allSolutions, taskWeight,
+				taskCount, days);
+
 		return selected;
 	}
-	
+
 	/*
 	 * optimized DP algorithm
 	 */
-	public static List<List<List<Integer>>> getALLOptimizedSolutions(List<Integer> taskWeight,
-			List<Integer> taskCount, int days) {
+	public static List<List<List<Integer>>> getALLOptimizedSolutions(List<Integer> taskWeight, List<Integer> taskCount,
+			int days) {
 		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0) {
 			return Collections.emptyList();
 		}
-		
+
 		Dp1 dp[][] = new Dp1[taskWeight.size() + 1][days + 1];
-		
+
 		for (int i = 0; i <= taskWeight.size(); ++i) {
 			for (int j = 0; j <= days; ++j) {
 				dp[i][j] = new Dp1();
 			}
 		}
-		
+
 		for (int i = 1; i <= taskWeight.size(); ++i) {
 			for (int j = 1; j <= days; ++j) {
 				if (j < taskWeight.get(i - 1)) {
@@ -675,10 +790,10 @@ public class Result {
 					dp[i][j].addLast(0);
 				} else {
 					int value = 0;
-					
+
 					for (int k = 0; k * taskWeight.get(i - 1) <= j && k <= taskCount.get(i - 1); k++) {
 						value = dp[i - 1][j - k * taskWeight.get(i - 1)].value + k * taskWeight.get(i - 1);
-						
+
 						if (dp[i][j].value < value) {
 							dp[i][j].value = value;
 							dp[i][j].removeAll();
@@ -686,13 +801,13 @@ public class Result {
 						} else if (dp[i][j].value == value) {
 							dp[i][j].addLast(k);
 						}
-						
+
 					}
-					
+
 				}
 			}
 		}
-		
+
 		/*
 		 * 测试 矩阵
 		 *
@@ -704,10 +819,10 @@ public class Result {
 		 * 
 		 * /* end
 		 */
-		
+
 		TaskNode rootNode = new TaskNode();
 		fun1(dp, taskWeight.size(), days, taskWeight, taskCount, rootNode);
-		
+
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 		return allSolutions;
 	}
@@ -771,7 +886,8 @@ public class Result {
 
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 
-		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allSolutions);
+		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allSolutions, taskWeight,
+				taskCount, days);
 
 		return selected;
 	}
@@ -899,6 +1015,19 @@ public class Result {
 
 		return true;
 	}
+	
+	public static List<Integer> convertFormatToList(List<List<Integer>> solutions){
+		if (solutions==null || solutions.isEmpty()) {
+			return Collections.emptyList();
+		}
+		
+		List<Integer> result = new ArrayList<>();
+		for (List<Integer> value : solutions) {
+			result.addAll(value);
+		}
+		
+		return result;
+	}
 
 	@SuppressWarnings("boxing")
 	public static int get_people_num(int days, List<Integer> tasks) {
@@ -927,13 +1056,8 @@ public class Result {
 				taskAllDays += buttom[i] * i;
 			}
 		}
-
-		/*
-		 * initialize taskSolution Cache
-		 */
-//		TaskSolutionsManager.initializeSolution(tasksWeight, tasksCount, days);
-//		TaskSolutionsManager.initializeSolution2(tasksWeight, tasksCount, days);
 		
+		initializeProbilityRate(tasksWeight, tasksCount);
 
 		int minBox = 0;
 		int theoreticalMim = taskAllDays / days;
@@ -945,40 +1069,100 @@ public class Result {
 		TaskNode rootNode = new TaskNode();
 		List<List<Integer>> selected = null;
 
-		List<SelectedCallBack> allSelectedCallBacks = new ArrayList<>();
-		allSelectedCallBacks.add(new MinProbabilySelected());
-
-		for (int i = 0; i < 10; i++) {
-			allSelectedCallBacks.add(new RandomSelected());
-		}
-
-		setSelectedAlgorithm(new MinExpectationSelected());
+		setSelectedAlgorithm(new PruneSelected());
+//		setSelectedAlgorithm(new MinExpectationSelected());
 		initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
+
 		selected = getOptimiedBoxNum(rootNode);
 		minBox = selected.size() - 1;
 
-		if (minBox == theoreticalMim) {
-			printSelectedResult(selected);
-			return minBox;
-		}
-
-		for (int i = 0; i < allSelectedCallBacks.size(); i++) {
-			setSelectedAlgorithm(allSelectedCallBacks.get(i));
-			initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
-			List<List<Integer>> tmp = getOptimiedBoxNum(rootNode);
-			if (minBox > (selected.size() - 1)) {
-				selected = tmp;
-				minBox = selected.size() - 1;
-
-				if (minBox == theoreticalMim) {
-					printSelectedResult(selected);
-					return minBox;
-				}
-			}
-		}
 
 		printSelectedResult(selected);
 		return minBox;
 	}
+
+
+
+@SuppressWarnings("boxing")
+public static int get_people_num1(int days, List<Integer> tasks) {
+	if (days <= 0 || tasks == null || tasks.isEmpty()) {
+		return -1;
+	}
+	
+	setDays(days);
+	int buttom[] = new int[MAX_DAYS];
+	
+	for (Integer taskInteger : tasks) {
+		if (taskInteger < 0 || taskInteger > days) {
+			return -1;
+		}
+		buttom[taskInteger]++;
+	}
+	
+	List<Integer> tasksCount = new ArrayList<>();
+	List<Integer> tasksWeight = new ArrayList<>();
+	int taskAllDays = 0;
+	
+	for (int i = 0; i < buttom.length; ++i) {
+		if (buttom[i] != 0) {
+			tasksCount.add(buttom[i]);
+			tasksWeight.add(i);
+			taskAllDays += buttom[i] * i;
+		}
+	}
+	
+	/*
+	 * initialize taskSolution Cache
+	 */
+//		TaskSolutionsManager.initializeSolution(tasksWeight, tasksCount, days);
+//		TaskSolutionsManager.initializeSolution2(tasksWeight, tasksCount, days);
+	
+	int minBox = 0;
+	int theoreticalMim = taskAllDays / days;
+	
+	if ((taskAllDays % days) != 0) {
+		theoreticalMim += 1;
+	}
+	
+	TaskNode rootNode = new TaskNode();
+	List<List<Integer>> selected = null;
+	
+	List<SelectedCallBack> allSelectedCallBacks = new ArrayList<>();
+	allSelectedCallBacks.add(new MinProbabilySelected());
+	
+	for (int i = 0; i < 10; i++) {
+		allSelectedCallBacks.add(new RandomSelected());
+	}
+	
+//		setSelectedAlgorithm(new MinExpectationSelected());
+	setSelectedAlgorithm(new PruneSelected());
+	initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
+	
+	selected = getOptimiedBoxNum(rootNode);
+	minBox = selected.size() - 1;
+	
+	if (minBox == theoreticalMim) {
+		printSelectedResult(selected);
+		return minBox;
+	}
+	
+	for (int i = 0; i < allSelectedCallBacks.size(); i++) {
+		setSelectedAlgorithm(allSelectedCallBacks.get(i));
+		initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
+		List<List<Integer>> tmp = getOptimiedBoxNum(rootNode);
+		if (minBox > (selected.size() - 1)) {
+			selected = tmp;
+			minBox = selected.size() - 1;
+			
+			if (minBox == theoreticalMim) {
+				printSelectedResult(selected);
+				return minBox;
+			}
+		}
+	}
+	
+	printSelectedResult(selected);
+	return minBox;
+}
 
 }
