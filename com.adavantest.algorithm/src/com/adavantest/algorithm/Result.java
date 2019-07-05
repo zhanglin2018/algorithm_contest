@@ -3,6 +3,7 @@ package com.adavantest.algorithm;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,9 +15,7 @@ import java.util.Map.Entry;
 
 import javax.swing.ListModel;
 import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
-
-import org.omg.CORBA.DynamicImplementation;
-import org.omg.CORBA.INITIALIZE;
+import javax.xml.bind.DataBindingException;
 
 
 class Package{
@@ -797,17 +796,23 @@ public class Result {
 				dp[i][j] = new Dp1();
 			}
 		}
+		
+//		Date date = new Date();
+		
+		int taskSize = taskWeight.size();
 
-		for (int i = 1; i <= taskWeight.size(); ++i) {
+		for (int i = 1; i <= taskSize; ++i) {
 			for (int j = 1; j <= days; ++j) {
-				if (j < taskWeight.get(i - 1)) {
+				int taskweight = taskWeight.get(i-1);
+				int taskcount = taskCount.get(i-1);
+				if (j < taskweight) {
 					dp[i][j].value = dp[i - 1][j].value;
 					dp[i][j].addLast(0);
 				} else {
 					int value = 0;
 
-					for (int k = 0; k * taskWeight.get(i - 1) <= j && k <= taskCount.get(i - 1); k++) {
-						value = dp[i - 1][j - k * taskWeight.get(i - 1)].value + k * taskWeight.get(i - 1);
+					for (int k = 0; k * taskweight <= j && k <= taskcount; k++) {
+						value = dp[i - 1][j - k * taskweight].value + k * taskweight;
 
 						if (dp[i][j].value < value) {
 							dp[i][j].value = value;
@@ -822,6 +827,10 @@ public class Result {
 				}
 			}
 		}
+		
+//		Date date1 = new Date();
+//		long time = date1.getTime() - date.getTime();
+//		System.out.println("time" + time);
 
 		for (int i = 0; i <= taskWeight.size(); ++i) {
 			for (int j = 0; j <= days; ++j) {
@@ -836,9 +845,8 @@ public class Result {
 			}
 			System.out.println();
 		}
-		
-		//modify Code
-		getALLOptimizedSolutions1(taskWeight, taskCount, days);
+		 
+//		getALLOptimizedSolutions1(taskWeight, taskCount,  days);
 
 		TaskNode rootNode = new TaskNode();
 		fun1(dp, taskWeight.size(), days, taskWeight, taskCount, rootNode);
@@ -865,60 +873,48 @@ public class Result {
 		}
 
 		
-		int q[] = new int[days];
+		int q[] = new int[2*days];
+		
+//		Date date = new Date();
 		
 		for (int i=1; i<=taskWeight.size(); ++i) {
 			int weight = taskWeight.get(i-1);
 			int count = Math.min(taskCount.get(i-1), days/weight);
 
 			for (int j=0; j<=weight-1; j++) {
-				
 				int l = 1;
 				int r = 0;
+				
 				for (int k=j; k<= days; k+=weight) {
-					while (l <= r && (k - q[l])/weight >= count) ++l;
-					while (l <=r && dp[i-1][k].value - dp[i-1][q[r]].value >= (k-q[r])) --r;
+					while (l <= r && (k - q[l])/weight > count) {
+						++l;
+					}
+					
+					List<Integer> counts = new ArrayList<>();
+					while (l <= r){
+						int value = dp[i-1][k].value - dp[i-1][q[r]].value;
+						int compare = k-q[r];
+						if (value < compare){
+							break; 
+						}
+						if (value == compare){
+							counts.add((k-q[r])/weight);
+						}
+						--r;
+					}
+					
 					q[++r] = k;
 					dp[i][k].value = dp[i-1][q[l]].value + (k - q[l]);
-					
+					dp[i][k].counts.add(r-l);
+					dp[i][k].counts.addAll(counts);
 				}
-				
 			}
 		}
 		
-//		for (int i=1; i<=taskWeight.size(); ++i) {
-//			for (int j=0; j<=taskWeight.get(i-1)-1; j++) {
-//				queue.clear();
-//				
-//				int count = Math.min(taskCount.get(i-1), days/taskWeight.get(i-1));
-//				
-//				for (int k=0; k * taskWeight.get(i-1) + j <= days; k++) {
-//					int value = dp[i-1][j+k*taskWeight.get(i-1)].value - k * taskWeight.get(i-1);
-//					
-//					while (!queue.isEmpty() && queue.peekLast().cost < value) {
-//						queue.pollLast();
-//					}
-//					
-//					queue.addLast(new Package(value, k));
-//					
-//					if (queue.peekFirst().count < k - taskWeight.get(i-1)) {
-//						queue.pop();
-//					}
-//					dp[i][j+k*taskWeight.get(i-1)].value = queue.peekFirst().cost + k * taskWeight.get(i-1); 
-//					
-//					while (!queue.isEmpty()) {
-//						dp[i][j+k*taskWeight.get(i-1)].counts.add(queue.peekLast().count);
-//						queue.pollLast();
-//					}
-//				}
-//				
-//			}
-//		}
+//		Date date1 = new Date();
+//		long time = date1.getTime() - date.getTime();
+//		System.out.println("time==" + time);
 		
-		
-		
-		
-
 		for (int i = 0; i <= taskWeight.size(); ++i) {
 			for (int j = 0; j <= days; ++j) {
 				System.out.print(dp[i][j].value + " ");
