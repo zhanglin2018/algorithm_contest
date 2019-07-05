@@ -838,7 +838,7 @@ public class Result {
 		}
 		
 		//modify Code
-		getALLMostOptimizedSolutions1(taskWeight, taskCount, days);
+		getALLOptimizedSolutions1(taskWeight, taskCount, days);
 
 		TaskNode rootNode = new TaskNode();
 		fun1(dp, taskWeight.size(), days, taskWeight, taskCount, rootNode);
@@ -850,7 +850,7 @@ public class Result {
 	/*
 	 * optimized DP algorithm
 	 */
-	public static List<List<List<Integer>>> getALLMostOptimizedSolutions1(List<Integer> taskWeight,
+	public static List<List<List<Integer>>> getALLOptimizedSolutions1(List<Integer> taskWeight,
 			List<Integer> taskCount, int days) {
 		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0) {
 			return null;
@@ -864,29 +864,56 @@ public class Result {
 			}
 		}
 
-		Deque<Package> queue = new LinkedList<>();
+		
+		int q[] = new int[days];
 		
 		for (int i=1; i<=taskWeight.size(); ++i) {
-			for (int j=0; j<=taskWeight.get(i-1)-1; j++) {
-				queue.clear();
+			int weight = taskWeight.get(i-1);
+			int count = Math.min(taskCount.get(i-1), days/weight);
+
+			for (int j=0; j<=weight-1; j++) {
 				
-				for (int k=0; k<=(days-j)/taskWeight.get(i-1); k++) {
-					int value = dp[i-1][j+k*taskWeight.get(i-1)].value - k * taskWeight.get(i-1);
+				int l = 1;
+				int r = 0;
+				for (int k=j; k<= days; k+=weight) {
+					while (l <= r && (k - q[l])/weight >= count) ++l;
+					while (l <=r && dp[i-1][k].value - dp[i-1][q[r]].value >= (k-q[r])) --r;
+					q[++r] = k;
+					dp[i][k].value = dp[i-1][q[l]].value + (k - q[l]);
 					
-					while (!queue.isEmpty() && queue.peekLast().cost < value) {
-						queue.pollLast();
-					}
-					
-					queue.addLast(new Package(value, k));
-					
-					if (queue.peekFirst().count < k - taskWeight.get(i-1)) {
-						queue.pop();
-					}
-					dp[i][j+k*taskWeight.get(i-1)].value = queue.peekFirst().cost + k * taskWeight.get(i-1); 
 				}
 				
 			}
 		}
+		
+//		for (int i=1; i<=taskWeight.size(); ++i) {
+//			for (int j=0; j<=taskWeight.get(i-1)-1; j++) {
+//				queue.clear();
+//				
+//				int count = Math.min(taskCount.get(i-1), days/taskWeight.get(i-1));
+//				
+//				for (int k=0; k * taskWeight.get(i-1) + j <= days; k++) {
+//					int value = dp[i-1][j+k*taskWeight.get(i-1)].value - k * taskWeight.get(i-1);
+//					
+//					while (!queue.isEmpty() && queue.peekLast().cost < value) {
+//						queue.pollLast();
+//					}
+//					
+//					queue.addLast(new Package(value, k));
+//					
+//					if (queue.peekFirst().count < k - taskWeight.get(i-1)) {
+//						queue.pop();
+//					}
+//					dp[i][j+k*taskWeight.get(i-1)].value = queue.peekFirst().cost + k * taskWeight.get(i-1); 
+//					
+//					while (!queue.isEmpty()) {
+//						dp[i][j+k*taskWeight.get(i-1)].counts.add(queue.peekLast().count);
+//						queue.pollLast();
+//					}
+//				}
+//				
+//			}
+//		}
 		
 		
 		
