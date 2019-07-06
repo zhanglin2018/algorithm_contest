@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -160,12 +161,19 @@ class PruneSelected implements SelectedCallBack {
 				|| taskCount == null || taskCount.isEmpty() || days <= 0) {
 			return Collections.emptyList();
 		}
-
+		
 		if (allSolutions.size() == 1) {
 			return allSolutions;
 		}
+		
+		int tasksSum = Result.listSum(Result.convertFormatToList(allSolutions.get(0)));
+		
+		if (tasksSum < days ){
+			return allSolutions;
 
-		Map<List<List<Integer>>, Integer> solutionsCacheMap = new HashMap<>();
+		}
+
+		Map<List<List<Integer>>, Integer> solutionsCacheMap = new LinkedHashMap<>();
 
 		for (List<List<Integer>> singleSolution : allSolutions) {
 			solutionsCacheMap.put(singleSolution, Result.convertFormatToList(singleSolution).size());
@@ -183,21 +191,88 @@ class PruneSelected implements SelectedCallBack {
 		/*
 		 * find the most optimized solution
 		 */
-		int maxValue = listDataEntries.get(0).getValue();
+		int minValue = listDataEntries.get(0).getValue();
 		List<List<List<Integer>>> selectedSolution = new ArrayList<>();
 
 
 		for (Map.Entry<List<List<Integer>>, Integer> entry : listDataEntries) {
-			if (entry.getValue() > maxValue) {
+			if (entry.getValue() > minValue) {
 				break;
 			}
 
+			selectedSolution.add(entry.getKey());
+		}
+
+		if (selectedSolution.isEmpty()) {
+			selectedSolution.add(listDataEntries.get(0).getKey());
+		}
+		
+//		int tasksSum = Result.listSum(Result.convertFormatToList(selectedSolution.get(0)));
+//		
+//		if (tasksSum < days && (selectedSolution.size() == 1 && listDataEntries.size() > 1)){
+////			System.out.println(selectedSolution + " From: " + listDataEntries);
+////			selectedSolution.add(listDataEntries.get(1).getKey());
+//			return allSolutions;
+//
+//		}
+		
+//		if (selectedSolution.size() == 1 && listDataEntries.size() > 1){
+//			selectedSolution.add(listDataEntries.get(1).getKey());
+//		}
+		
+		
+		// case 1
+
+		return selectedSolution;
+	}
+}
+class PruneSelected2 implements SelectedCallBack {
+	@SuppressWarnings("boxing")
+	@Override
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount, int days) {
+		if (allSolutions == null || allSolutions.isEmpty() || taskWeight == null || taskWeight.isEmpty()
+				|| taskCount == null || taskCount.isEmpty() || days <= 0) {
+			return Collections.emptyList();
+		}
+		
+		if (allSolutions.size() == 1) {
+			return allSolutions;
+		}
+		
+		Map<List<List<Integer>>, Integer> solutionsCacheMap = new HashMap<>();
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			solutionsCacheMap.put(singleSolution, Result.convertFormatToList(singleSolution).size());
+		}
+		
+		List<Map.Entry<List<List<Integer>>, Integer>> listDataEntries = new ArrayList<>(solutionsCacheMap.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Integer>>() {
+			
+			@Override
+			public int compare(Entry<List<List<Integer>>, Integer> o1, Entry<List<List<Integer>>, Integer> o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		
+		/*
+		 * find the most optimized solution
+		 */
+		int maxValue = listDataEntries.get(0).getValue();
+		List<List<List<Integer>>> selectedSolution = new ArrayList<>();
+		
+		
+		for (Map.Entry<List<List<Integer>>, Integer> entry : listDataEntries) {
+			if (entry.getValue() > maxValue) {
+				break;
+			}
+			
 			if (Result.convertFormatToList(entry.getKey()).size() <= maxValue) {
 				selectedSolution.add(entry.getKey());
 			}
 		}
 		
-
+		
 		if (selectedSolution.isEmpty()) {
 			selectedSolution.add(listDataEntries.get(0).getKey());
 		}
@@ -206,7 +281,7 @@ class PruneSelected implements SelectedCallBack {
 		
 		
 		// case 1
-
+		
 		return selectedSolution;
 	}
 }
@@ -395,6 +470,19 @@ public class Result {
 	public static void setSelectedAlgorithm(SelectedCallBack selectedAlgorithm) {
 		Result.selectedAlgorithm = selectedAlgorithm;
 	}
+	
+	public static int listSum(List<Integer> values){
+		if (values == null || values.isEmpty()){
+			return 0;
+		}
+		
+		int sum = 0;
+		for (Integer value : values){
+			sum += value;
+		}
+		
+		return sum;
+	}
 
 	/*
 	 * optimized DP algorithm
@@ -531,8 +619,9 @@ public class Result {
 					dp[i][j].addLast(0);
 				} else {
 					int value = 0;
-					
-					for (int k = 0; k * taskweight <= j && k <= taskcount; k++) {
+					int k = Math.min(taskcount, j/taskweight);
+					for (;k>=0; --k) {
+//						for (int k = 0; k * taskweight <= j && k <= taskcount; k++) {
 						value = dp[i - 1][j - k * taskweight].value + k * taskweight;
 						
 						if (dp[i][j].value < value) {
