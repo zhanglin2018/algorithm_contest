@@ -180,4 +180,14 @@ public class TestResult2 {
 	    Assert.assertEquals(expected, Result.get_people_num(days, tasks));
 	    System.out.println();	
 	}
+	
+	@Test
+	public void testAlgorithm17() {
+		int days = 10;
+		int expected = 1;
+		List<Integer> tasks = Arrays.asList(new Integer[] { 9 });
+		System.out.println("testAlgorithm17:    " + tasks + "     days: " + days + "     expected: " + expected);
+		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
+		System.out.println();	
+	}
 }
