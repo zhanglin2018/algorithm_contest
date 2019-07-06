@@ -183,10 +183,24 @@ public class TestResult2 {
 	
 	@Test
 	public void testAlgorithm17() {
+		int days = 100;
+		int expected = 40;
+		List<Integer> tasks = Arrays.asList(new Integer[] { 92,89,87,84,82, 82, 81,75, 73,71,67, 67,63,59,
+				57,56,52,49,48,47,46,41, 39, 38, 36, 35, 34, 34, 30, 29, 26, 21, 20, 19, 18, 15, 15, 13, 11,
+				10,10,10,9,8,8,7,6,6,6,3, 92,89,87,84,82, 82, 81,75, 73,71,67, 67,63,59,
+				57,56,52,49,48,47,46,41, 39, 38, 36, 35, 34, 34, 30, 29, 26, 21, 20, 19, 18, 15, 15, 13, 11,
+				10,10,10,9,8,8,7,6,6,6,3 });
+		System.out.println("testAlgorithm17:    " + tasks + "     days: " + days + "     expected: " + expected);
+		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
+		System.out.println();	
+	}
+	
+	@Test
+	public void testAlgorithm18() {
 		int days = 10;
 		int expected = 1;
 		List<Integer> tasks = Arrays.asList(new Integer[] { 9 });
-		System.out.println("testAlgorithm17:    " + tasks + "     days: " + days + "     expected: " + expected);
+		System.out.println("testAlgorithm18:    " + tasks + "     days: " + days + "     expected: " + expected);
 		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
 		System.out.println();	
 	}
