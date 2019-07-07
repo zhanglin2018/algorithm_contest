@@ -91,6 +91,7 @@ class TaskNode {
 
 class TaskNodeManager{
 	public static List<List<List<Integer>>> solutionsCacheList = new ArrayList<>();
+	public static int solutionCount = 0;
 	
 	public static void addSolutionPath(TaskNode currentNode){
 		if (currentNode == null){
@@ -107,6 +108,7 @@ class TaskNodeManager{
 		}
 		
 		solutionsCacheList.add(solution);
+		solutionCount++;
 	}
 	
 	private static boolean judgeContainSpecificPath(int deep, int compare[]){
@@ -212,7 +214,7 @@ class PruneSelected implements SelectedCallBack {
 		
 		int tasksSum = Result.listSum(Result.convertFormatToList(allSolutions.get(0)));
 		
-		if (tasksSum < days && remainBox <= 11){
+		if (tasksSum < days && remainBox <= Result.theroBoxNum/2){
 			return allSolutions;
 		} 
 
@@ -260,24 +262,12 @@ class PruneSelected implements SelectedCallBack {
 		
 		List<List<List<Integer>>> selectedSolution1 = new ArrayList<>();
 		if (remainBox < (Result.theroBoxNum/2) && selectedSolution.size() > 1){
-//			if (remainBox > (Result.theroBoxNum) && selectedSolution.size() > 1){
 			selectedSolution1.add(selectedSolution.get(0));
-//			selectedSolution1.add(selectedSolution.get(1));
+			selectedSolution1.add(selectedSolution.get(1));
 			return selectedSolution1;
-		}
-		
-		if (selectedSolution.size() > 1){
-//			SelectedCallBack selectedCallBack = new PruneSelected1();
-//			List<List<List<Integer>>> solution = selectedCallBack.selectOptimizedAlgorithm(selectedSolution, taskWeight, taskCount, days);
-			selectedSolution1.add(selectedSolution.get(0));   //這個 非常重要，會影響 tasecase 17 cong 5到2224
-			selectedSolution1.add(selectedSolution.get(1));   //這個 非常重要，會影響 tasecase 17 cong 5到2224
-			return selectedSolution1;
-//			return solution;
-			
 		}
 		
 		return selectedSolution;
-		
 	}
 }
 
@@ -926,11 +916,15 @@ public class Result {
 		return selectedList;
 	}
 
-	public static void initializeSolutionTree1(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
+	public static void initializeSolutionTree(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
 			TaskNode parentNode) {
 		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0
 				|| parentNode == null) {
 			TaskNodeManager.addSolutionPath(parentNode);
+			return;
+		}
+		
+		if (TaskNodeManager.solutionCount > 10000){
 			return;
 		}
 		
@@ -960,14 +954,13 @@ public class Result {
 		}
 	}
 	
-	public static void initializeSolutionTree(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
+	public static void initializeSolutionTree1(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
 			TaskNode parentNode) {
 		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0
 				|| parentNode == null) {
 			TaskNodeManager.addSolutionPath(parentNode);
 			return;
 		}
-		
 		
 		List<List<List<Integer>>> allOptimizedSolutions = getSeletedOptimezedSolution(tasksWeight, tasksCount, days);
 		
