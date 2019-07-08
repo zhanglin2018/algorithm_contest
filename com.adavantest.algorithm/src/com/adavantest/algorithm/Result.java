@@ -89,95 +89,93 @@ class TaskNode {
 	}
 }
 
-class TaskNodeManager{
+class TaskNodeManager {
 	public static List<List<List<Integer>>> solutionsCacheList = new ArrayList<>();
 	public static int solutionCount = 0;
-	
-	public static void clearCache(){
+
+	public static void clearCache() {
 		solutionsCacheList.clear();
 		solutionCount = 0;
 	}
-	
-	public static void addSolutionPath(TaskNode currentNode){
-		if (currentNode == null){
-			return; 
+
+	public static void addSolutionPath(TaskNode currentNode) {
+		if (currentNode == null) {
+			return;
 		}
-		
+
 		List<List<Integer>> solution = new ArrayList<>();
 		solution.add(0, currentNode.values);
-		
+
 		TaskNode parentNode = currentNode.parent;
-		while (parentNode != null){
+		while (parentNode != null) {
 			solution.add(0, parentNode.values);
 			parentNode = parentNode.parent;
 		}
-		
+
 		solutionsCacheList.add(solution);
 		solutionCount++;
 	}
-	
-	private static boolean judgeContainSpecificPath(int deep, int compare[]){
-		if (solutionsCacheList.isEmpty()){
+
+	private static boolean judgeContainSpecificPath(int deep, int compare[]) {
+		if (solutionsCacheList.isEmpty()) {
 			return false;
 		}
-		
-		for (List<List<Integer>> solutions : solutionsCacheList){
+
+		for (List<List<Integer>> solutions : solutionsCacheList) {
 			int result[] = new int[Result.days + 1];
-			
-			if (solutions.size() < deep){
+
+			if (solutions.size() < deep) {
 				continue;
 			}
 
-			for (int i=0; i<deep; i++){
-				for (Integer value : solutions.get(i)){
+			for (int i = 0; i < deep; i++) {
+				for (Integer value : solutions.get(i)) {
 					result[value]++;
 				}
 			}
-			
+
 			boolean isEqual = true;
-			for (int i=0; i<result.length; i++){
-				if (result[i] != compare[i]){
+			for (int i = 0; i < result.length; i++) {
+				if (result[i] != compare[i]) {
 					isEqual = false;
 					break;
 				}
 			}
-			
-			if (isEqual){
+
+			if (isEqual) {
 				return true;
 			}
-			
+
 		}
-		
+
 		return false;
 	}
-	
-	public static boolean isContainSpecificPath(TaskNode currentNode){
-		if (currentNode==null || solutionsCacheList.isEmpty()){
+
+	public static boolean isContainSpecificPath(TaskNode currentNode) {
+		if (currentNode == null || solutionsCacheList.isEmpty()) {
 			return false;
 		}
-		
+
 		int deep = 1;
 		int solutionValue[] = new int[Result.days + 1];
-		
+
 		List<Integer> solutions = new ArrayList<>();
 		solutions.addAll(currentNode.values);
-		
+
 		TaskNode lastNode = currentNode.parent;
-		while (lastNode != null){
+		while (lastNode != null) {
 			deep++;
 			solutions.addAll(lastNode.values);
 			lastNode = lastNode.parent;
 		}
-	
-		for (Integer value : solutions){
+
+		for (Integer value : solutions) {
 			solutionValue[value]++;
 		}
-		
+
 		return judgeContainSpecificPath(deep, solutionValue);
 	}
 }
-
-
 
 interface SelectedCallBack {
 	List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions, List<Integer> taskWeight,
@@ -208,20 +206,19 @@ class PruneSelected implements SelectedCallBack {
 				|| taskCount == null || taskCount.isEmpty() || days <= 0) {
 			return Collections.emptyList();
 		}
-		
+
 		if (allSolutions.size() == 1) {
 			return allSolutions;
 		}
-		
+
 		// get remain box num
 		int remainBox = Result.getRemainBoxNum(taskWeight, taskCount, days);
-		
-		
+
 		int tasksSum = Result.listSum(Result.convertFormatToList(allSolutions.get(0)));
-		
-		if (tasksSum < days){
+
+		if (tasksSum < days) {
 			return allSolutions;
-		} 
+		}
 
 		Map<List<List<Integer>>, Integer> solutionsCacheMap = new LinkedHashMap<>();
 
@@ -244,7 +241,6 @@ class PruneSelected implements SelectedCallBack {
 		int minValue = listDataEntries.get(0).getValue();
 		List<List<List<Integer>>> selectedSolution = new ArrayList<>();
 
-
 		for (Map.Entry<List<List<Integer>>, Integer> entry : listDataEntries) {
 			if (entry.getValue() > minValue) {
 				break;
@@ -256,22 +252,102 @@ class PruneSelected implements SelectedCallBack {
 		if (selectedSolution.isEmpty()) {
 			selectedSolution.add(listDataEntries.get(0).getKey());
 		}
-		
-		if (remainBox <= Result.theroBoxNum/2){
-			
-			if (selectedSolution.size() == 1 && listDataEntries.size() == 2){
+
+		if (remainBox <= Result.theroBoxNum / 2) {
+
+			if (selectedSolution.size() == 1 && listDataEntries.size() == 2) {
 				selectedSolution.add(listDataEntries.get(1).getKey());
 				return selectedSolution;
-			}	
-			if (selectedSolution.size() == 1 && listDataEntries.size() > 2){
+			}
+			if (selectedSolution.size() == 1 && listDataEntries.size() > 2) {
 				selectedSolution.add(listDataEntries.get(1).getKey());
 				selectedSolution.add(listDataEntries.get(2).getKey());
 				return selectedSolution;
-			}	
+			}
+		}
+
+		List<List<List<Integer>>> selectedSolution1 = new ArrayList<>();
+		if (remainBox > (Result.theroBoxNum / 2) && selectedSolution.size() > 1) {
+			selectedSolution1.add(selectedSolution.get(0));
+			selectedSolution1.add(selectedSolution.get(1));
+			return selectedSolution1;
+		}
+
+		return selectedSolution;
+	}
+}
+
+class PruneProcessSelected implements SelectedCallBack {
+	@SuppressWarnings("boxing")
+	@Override
+	public List<List<List<Integer>>> selectOptimizedAlgorithm(List<List<List<Integer>>> allSolutions,
+			List<Integer> taskWeight, List<Integer> taskCount, int days) {
+		if (allSolutions == null || allSolutions.isEmpty() || taskWeight == null || taskWeight.isEmpty()
+				|| taskCount == null || taskCount.isEmpty() || days <= 0) {
+			return Collections.emptyList();
+		}
+		
+		if (allSolutions.size() == 1) {
+			return allSolutions;
+		}
+		
+		// get remain box num
+		int remainBox = Result.getRemainBoxNum(taskWeight, taskCount, days);
+		
+		int tasksSum = Result.listSum(Result.convertFormatToList(allSolutions.get(0)));
+		
+		if (tasksSum < days) {
+			return allSolutions;
+		}
+		
+		Map<List<List<Integer>>, Integer> solutionsCacheMap = new LinkedHashMap<>();
+		
+		for (List<List<Integer>> singleSolution : allSolutions) {
+			solutionsCacheMap.put(singleSolution, Result.convertFormatToList(singleSolution).size());
+		}
+		
+		List<Map.Entry<List<List<Integer>>, Integer>> listDataEntries = new ArrayList<>(solutionsCacheMap.entrySet());
+		Collections.sort(listDataEntries, new Comparator<Map.Entry<List<List<Integer>>, Integer>>() {
+			
+			@Override
+			public int compare(Entry<List<List<Integer>>, Integer> o1, Entry<List<List<Integer>>, Integer> o2) {
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+		
+		/*
+		 * find the most optimized solution
+		 */
+		int minValue = listDataEntries.get(0).getValue();
+		List<List<List<Integer>>> selectedSolution = new ArrayList<>();
+		
+		for (Map.Entry<List<List<Integer>>, Integer> entry : listDataEntries) {
+			if (entry.getValue() > minValue) {
+				break;
+			}
+			
+			selectedSolution.add(entry.getKey());
+		}
+		
+		if (selectedSolution.isEmpty()) {
+			selectedSolution.add(listDataEntries.get(0).getKey());
+		}
+		
+		if (remainBox <= Result.theroBoxNum / 2) {
+			
+			if (selectedSolution.size() == 1 && listDataEntries.size() == 2) {
+				selectedSolution.add(listDataEntries.get(1).getKey());
+				return selectedSolution;
+			}
+			if (selectedSolution.size() == 1 && listDataEntries.size() > 2) {
+				selectedSolution.add(listDataEntries.get(1).getKey());
+				selectedSolution.add(listDataEntries.get(2).getKey());
+				return selectedSolution;
+			}
 		}
 		
 		List<List<List<Integer>>> selectedSolution1 = new ArrayList<>();
-		if (remainBox > (Result.theroBoxNum/2) && selectedSolution.size() > 1){
+		if (remainBox > (Result.theroBoxNum / 2) && selectedSolution.size() > 1) {
 			selectedSolution1.add(selectedSolution.get(0));
 			selectedSolution1.add(selectedSolution.get(1));
 			return selectedSolution1;
@@ -353,6 +429,16 @@ public class Result {
 	public static double[] probilityRate;
 	public static int days = 0;
 	public static int theroBoxNum = 0;
+	public static int maxIterateNum = 10000;
+	public static boolean isPreProcess = true;
+
+	public static void setMaxIterateNum(int iterateNum) {
+		maxIterateNum = iterateNum;
+	}
+	
+	public static void setIsPreProcess(boolean value) {
+		isPreProcess = value;
+	}
 
 	public static void setCounts(int counts) {
 		Result.theroBoxNum = counts;
@@ -393,27 +479,27 @@ public class Result {
 	public static void setSelectedAlgorithm(SelectedCallBack selectedAlgorithm) {
 		Result.selectedAlgorithm = selectedAlgorithm;
 	}
-	
-	public static int listSum(List<Integer> values){
-		if (values == null || values.isEmpty()){
+
+	public static int listSum(List<Integer> values) {
+		if (values == null || values.isEmpty()) {
 			return 0;
 		}
-		
+
 		int sum = 0;
-		for (Integer value : values){
+		for (Integer value : values) {
 			sum += value;
 		}
-		
+
 		return sum;
 	}
-	
-	public static int getRemainBoxNum(List<Integer>tasksWeight, List<Integer>tasksCounts, int days){
-		if (tasksWeight==null || tasksWeight.isEmpty() || tasksCounts==null || tasksCounts.isEmpty() || days <= 0){
+
+	public static int getRemainBoxNum(List<Integer> tasksWeight, List<Integer> tasksCounts, int days) {
+		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCounts == null || tasksCounts.isEmpty() || days <= 0) {
 			return 0;
 		}
-		
+
 		int taskAllDays = 0;
-		for (int i=0; i<tasksWeight.size(); ++i) {
+		for (int i = 0; i < tasksWeight.size(); ++i) {
 			taskAllDays += tasksWeight.get(i) * tasksCounts.get(i);
 		}
 
@@ -422,7 +508,7 @@ public class Result {
 		if ((taskAllDays % days) != 0) {
 			theoreticalMim += 1;
 		}
-		
+
 		return theoreticalMim;
 	}
 
@@ -431,33 +517,36 @@ public class Result {
 	 */
 	public static List<List<List<Integer>>> getSeletedOptimezedSolution(List<Integer> tasksWeight,
 			List<Integer> tasksCount, int days) {
-		List<List<List<Integer>>> allOptimizedSolutions = getKOptimimizedSolutionByIterate(tasksWeight, tasksCount, days);
 
-//		SelectedCallBack selectedAlgorithm = new NormalSelected();
-		SelectedCallBack selectedAlgorithm = new PruneSelected();
-//		SelectedCallBack selectedAlgorithm = new PruneSelected2();
-//		SelectedCallBack selectedAlgorithm = new MinExpectationSelected();
-		
-		
-		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allOptimizedSolutions, tasksWeight,
-				tasksCount, days);
+		List<List<List<Integer>>> allOptimizedSolutions = null;
+
+		if (Result.isPreProcess) {
+			setSelectedAlgorithm(new PruneSelected());
+			allOptimizedSolutions = getKOptimimizedSolutionByIterate(tasksWeight, tasksCount, days);
+		} else {
+			setSelectedAlgorithm(new PruneProcessSelected());
+			allOptimizedSolutions = getALLOptimizedSolutions(tasksWeight, tasksCount, days);
+		}
+
+		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allOptimizedSolutions,
+				tasksWeight, tasksCount, days);
 		return selected;
 	}
 
 	/*
 	 * optimized DP algorithm
 	 */
-	public static List<List<List<Integer>>> getKOptimimizedSolutionByIterate(List<Integer> tasksWeight, List<Integer> tasksCount,
-			int days) {
+	public static List<List<List<Integer>>> getKOptimimizedSolutionByIterate(List<Integer> tasksWeight,
+			List<Integer> tasksCount, int days) {
 		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days < 0) {
 			return Collections.emptyList();
 		}
 
 		List<Integer> expectedValue = new ArrayList<>();
-		int i = tasksWeight.size()-1;
+		int i = tasksWeight.size() - 1;
 		expectedValue.add(tasksWeight.get(i));
 
-		if (tasksWeight.size() == 1 && tasksCount.get(0) == 1){
+		if (tasksWeight.size() == 1 && tasksCount.get(0) == 1) {
 			List<List<List<Integer>>> allSolutions = new ArrayList<>();
 			List<List<Integer>> singleSolutionsList = new ArrayList<>();
 			singleSolutionsList.add(new ArrayList<>());
@@ -479,18 +568,16 @@ public class Result {
 		tasksCountTmp.addAll(tasksCount);
 
 		if (Result.updateTaskList(tasksWeightTmp, tasksCountTmp, expectedValue)) {
-			allOptimizedSolutions = Result.getALLOptimizedSolutions(tasksWeightTmp,
-					tasksCountTmp, remainDays);
+			allOptimizedSolutions = Result.getALLOptimizedSolutions(tasksWeightTmp, tasksCountTmp, remainDays);
 		}
-			
-		
-		for (List<List<Integer>> solution : allOptimizedSolutions){
+
+		for (List<List<Integer>> solution : allOptimizedSolutions) {
 			solution.add(expectedValue);
 		}
-		
+
 		return allOptimizedSolutions;
 	}
-	
+
 	/*
 	 * optimized DP algorithm
 	 */
@@ -499,30 +586,30 @@ public class Result {
 		if (taskWeight == null || taskWeight.isEmpty() || taskCount == null || taskCount.isEmpty() || days < 0) {
 			return Collections.emptyList();
 		}
-		
+
 		Dp1 dp[][] = new Dp1[taskWeight.size() + 1][days + 1];
-		
+
 		for (int i = 0; i <= taskWeight.size(); ++i) {
 			for (int j = 0; j <= days; ++j) {
 				dp[i][j] = new Dp1();
 			}
 		}
-		
+
 		int taskSize = taskWeight.size();
-		
+
 		for (int i = 1; i <= taskSize; ++i) {
 			for (int j = 1; j <= days; ++j) {
-				int taskweight = taskWeight.get(i-1);
-				int taskcount = taskCount.get(i-1);
+				int taskweight = taskWeight.get(i - 1);
+				int taskcount = taskCount.get(i - 1);
 				if (j < taskweight) {
 					dp[i][j].value = dp[i - 1][j].value;
 					dp[i][j].addLast(0);
 				} else {
 					int value = 0;
-					int k = Math.min(taskcount, j/taskweight);
-					for (;k>=0; --k) {
+					int k = Math.min(taskcount, j / taskweight);
+					for (; k >= 0; --k) {
 						value = dp[i - 1][j - k * taskweight].value + k * taskweight;
-						
+
 						if (dp[i][j].value < value) {
 							dp[i][j].value = value;
 							dp[i][j].removeAll();
@@ -530,16 +617,16 @@ public class Result {
 						} else if (dp[i][j].value == value) {
 							dp[i][j].addLast(k);
 						}
-						
+
 					}
-					
+
 				}
 			}
 		}
-		
+
 		TaskNode rootNode = new TaskNode();
 		fun1(dp, taskWeight.size(), days, taskWeight, taskCount, rootNode);
-		
+
 		List<List<List<Integer>>> allSolutions = TaskNode.getTreeAllPaths(rootNode, new ArrayList<List<Integer>>());
 		return allSolutions;
 	}
@@ -592,8 +679,9 @@ public class Result {
 	private static List<List<Integer>> getOptimiedBoxNum(TaskNode rootNode) {
 		int minBox;
 		List<List<List<Integer>>> allSolutions = TaskNodeManager.solutionsCacheList;
-		System.out.println("solution num :" + allSolutions.size());
-		
+//		System.out.println("solution num: " + allSolutions.size());
+//		System.out.println("solution size: " + TaskNodeManager.solutionCount);
+
 		minBox = allSolutions.get(0).size();
 		int len = 0;
 		List<List<Integer>> selectedList = allSolutions.get(0);
@@ -607,16 +695,16 @@ public class Result {
 
 		return selectedList;
 	}
-	
-	public static void initializeSolutionTree(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
+
+	public static void initializeSolutionTree1(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
 			TaskNode parentNode) {
 		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0
 				|| parentNode == null) {
 			TaskNodeManager.addSolutionPath(parentNode);
 			return;
 		}
-		
-		if (TaskNodeManager.solutionCount > 10000){
+
+		if (TaskNodeManager.solutionCount > Result.maxIterateNum) {
 			return;
 		}
 
@@ -632,19 +720,66 @@ public class Result {
 			childNode.parent = parentNode;
 			parentNode.childrens.add(childNode);
 			childNode.values.addAll(itegrationList);
-			
-			//judge whether the solution has been contained.
+
+			// judge whether the solution has been contained.
+			List<Integer> tasksWeightTmp = new ArrayList<>();
+			tasksWeightTmp.addAll(tasksWeight);
+			List<Integer> tasksCountTmp = new ArrayList<>();
+			tasksCountTmp.addAll(tasksCount);
+
+			if (updateTaskList(tasksWeightTmp, tasksCountTmp, itegrationList)) {
+				initializeSolutionTree(tasksWeightTmp, tasksCountTmp, days, childNode);
+			}
+		}
+	}
+
+	public static void initializeSolutionTree(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
+			TaskNode parentNode) {
+		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0
+				|| parentNode == null) {
+			TaskNodeManager.addSolutionPath(parentNode);
+			return;
+		}
+
+		if (TaskNodeManager.solutionCount > Result.maxIterateNum) {
+			return;
+		}
+
+		List<List<List<Integer>>> allOptimizedSolutions = getSeletedOptimezedSolution(tasksWeight, tasksCount, days);
+
+		for (List<List<Integer>> singleSolution : allOptimizedSolutions) {
+			List<Integer> itegrationList = new ArrayList<>();
+			for (List<Integer> value : singleSolution) {
+				itegrationList.addAll(value);
+			}
+
+			TaskNode childNode = new TaskNode();
+			childNode.parent = parentNode;
+			parentNode.childrens.add(childNode);
+			childNode.values.addAll(itegrationList);
+
+			// judge whether the solution has been contained.
+			boolean isContain = TaskNodeManager.isContainSpecificPath(childNode);
+			if (isContain) {
+				parentNode.childrens.remove(parentNode.childrens.size() - 1);
+				TaskNodeManager.solutionCount++;
+			}
+
+			if (!isContain) {
 				List<Integer> tasksWeightTmp = new ArrayList<>();
 				tasksWeightTmp.addAll(tasksWeight);
 				List<Integer> tasksCountTmp = new ArrayList<>();
 				tasksCountTmp.addAll(tasksCount);
-				
+
 				if (updateTaskList(tasksWeightTmp, tasksCountTmp, itegrationList)) {
 					initializeSolutionTree(tasksWeightTmp, tasksCountTmp, days, childNode);
 				}
+			}
+
 		}
+
 	}
-	
+
 	@SuppressWarnings("boxing")
 	public static boolean updateTaskList(List<Integer> tasksWeight, List<Integer> tasksCount,
 			List<Integer> expectedValue) {
@@ -684,6 +819,78 @@ public class Result {
 		return result;
 	}
 
+	public static List<List<Integer>> postProcess(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
+			List<List<Integer>> solutions) {
+		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty()
+				|| solutions == null || solutions.isEmpty()) {
+			return Collections.emptyList();
+		}
+		
+		List<List<Integer>> collections = new ArrayList<>();
+		List<Integer> expectedValue = new ArrayList<>();
+		for (List<Integer> solution : solutions) {
+			if (listSum(solution) != days) {
+				expectedValue.addAll(solution);
+			}else {
+				collections.add(solution);
+			}
+		}
+		
+		if (collections.isEmpty()) {
+			return solutions;
+		}
+		
+		int collectionsLen = collections.size();
+		int startIndex = collectionsLen/2;
+		
+		List<List<Integer>> expectedCollection = new ArrayList<>();
+		for (int i=0; i<startIndex; i++) {
+			expectedCollection.add(collections.get(i));
+		}
+		
+		for (int i=startIndex; i<collectionsLen; i++) {
+			for (Integer value : collections.get(i)) {
+				expectedValue.add(value);
+			}
+		}
+		
+		List<Integer> tasksWeightTmp = new ArrayList<>();
+		tasksWeightTmp.addAll(tasksWeight);
+		List<Integer> tasksCountTmp = new ArrayList<>();
+		tasksCountTmp.addAll(tasksCount);
+		
+		List<List<Integer>> selectedSolutionList = new ArrayList<>();
+		Result.setCounts(Result.theroBoxNum - startIndex);
+		Result.setMaxIterateNum(7500);
+		Result.setIsPreProcess(false);
+		
+		if (updateTaskList(tasksWeightTmp, tasksCountTmp, convertFormatToList(expectedCollection))) {
+			System.out.println(tasksCountTmp);
+			
+			TaskNodeManager.clearCache();
+			
+			TaskNode rootNode = new TaskNode();
+			initializeSolutionTree(tasksWeightTmp, tasksCountTmp, days, rootNode);
+			selectedSolutionList.addAll(getOptimiedBoxNum(rootNode)); 
+		}
+		
+		List<List<Integer>> resultSolutions = new ArrayList<>();
+		resultSolutions.add(new ArrayList<>());
+		resultSolutions.addAll(expectedCollection);
+		for (List<Integer> value : selectedSolutionList) {
+			if (!value.isEmpty()) {
+				resultSolutions.add(value);
+			}
+		}
+
+		if (resultSolutions.size() >= solutions.size()) {
+			return solutions;
+		}
+		
+		return resultSolutions;
+
+	}
+
 	@SuppressWarnings("boxing")
 	public static int get_people_num(int days, List<Integer> tasks) {
 		if (days <= 0 || tasks == null || tasks.isEmpty()) {
@@ -691,6 +898,8 @@ public class Result {
 		}
 
 		setDays(days);
+		setIsPreProcess(true);
+		setMaxIterateNum(10000);
 		int buttom[] = new int[MAX_DAYS];
 
 		for (Integer taskInteger : tasks) {
@@ -731,7 +940,15 @@ public class Result {
 		selected = getOptimiedBoxNum(rootNode);
 		minBox = selected.size() - 1;
 
-		printSelectedResult(selected);
+		// add postProcess
+		if (minBox == theoreticalMim) {
+			printSelectedResult(selected);
+			return minBox;
+		}
+
+		List<List<Integer>> finalSelected = postProcess(tasksWeight, tasksCount, days, selected);
+		minBox = finalSelected.size() - 1;
+		printSelectedResult(finalSelected);
 		return minBox;
 	}
 }

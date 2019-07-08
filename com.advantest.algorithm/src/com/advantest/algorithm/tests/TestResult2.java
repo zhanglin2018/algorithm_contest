@@ -350,6 +350,47 @@ public class TestResult2 {
 		System.out.println();	
 	}
 	
+	@Test
+	public void testAlgorithm19_7() {
+		int days = 100;
+		int expected = 45;
+		List<Integer> tasks = Arrays.asList(new Integer[] {20,20,20,20,21,22,22,22,22,23,23,23,23,23,25,26,26,26,
+				27,29,29,29,29,30,30,30,31,32,32,32,33,33,33,34,35,35,35,36,36,37,37,37,38,38,39,40,40,42,42,42,
+				44,44,45,47,48,49,50,50,50,51,52,52,53,53,54,54,55,55,55,56,57,58,58,58,58,59,60,60,60,61,61,62,62,
+				62,62,63,63,64,65,65,65,66,66,66,66,67,67,68,69,69});
+		
+		System.out.println("size= " + tasks.size());
+		System.out.println("testAlgorithm19_7:    " + tasks + "     days: " + days + "     expected: " + expected);
+		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
+		System.out.println();	
+	}
+	
+	@Test
+	public void testAlgorithm19_8() {
+		int days = 100;
+		int expected = 13;
+		List<Integer> tasks = Arrays.asList(new Integer[] {23, 22, 55, 
+				23, 22, 55, 
+				23, 23, 54, 
+				23, 22, 54, 
+				47, 53, 
+				44, 53, 
+				48, 52, 
+				29, 52, 
+				49, 51, 
+				50, 50, 
+				29, 50, 
+				29, 27, 29, 
+				26, 26, 26, 
+				25, 
+});
+		
+		System.out.println("size= " + tasks.size());
+		System.out.println("testAlgorithm19_6:    " + tasks + "     days: " + days + "     expected: " + expected);
+		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
+		System.out.println();	
+	}
+	
 	
 	@Test
 	public void testAlgorithm19_1() {
