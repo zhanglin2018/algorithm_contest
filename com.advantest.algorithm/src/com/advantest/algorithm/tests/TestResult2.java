@@ -137,6 +137,39 @@ public class TestResult2 {
 		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
 		System.out.println();
 	}
+	
+	@Test
+	public void testAlgorithm9_1() {
+		int days = 10;
+		int expected = -1;
+		List<Integer> tasks = Arrays.asList(new Integer[] { });
+		
+		System.out.println("testAlgorithm9:    " + tasks + "     days: " + days + "     expected: " + expected);
+		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
+		System.out.println();
+	}
+	
+	@Test
+	public void testAlgorithm9_2() {
+		int days = 10;
+		int expected = 1;
+		List<Integer> tasks = Arrays.asList(new Integer[] { 1});
+		
+		System.out.println("testAlgorithm9:    " + tasks + "     days: " + days + "     expected: " + expected);
+		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
+		System.out.println();
+	}
+	
+	@Test
+	public void testAlgorithm9_3() {
+		int days = 10;
+		int expected = 1;
+		List<Integer> tasks = Arrays.asList(new Integer[] { 11});
+		
+		System.out.println("testAlgorithm9:    " + tasks + "     days: " + days + "     expected: " + expected);
+		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
+		System.out.println();
+	}
 
 	@Test
 	public void testAlgorithm10() {
@@ -730,7 +763,7 @@ public class TestResult2 {
 	@Test
 	public void testAlgorithm_testNum_10() throws NumberFormatException, IOException {
 		int days = 100;
-		int expected = 35;
+		int expected = 36;
 		List<Integer> info = new ArrayList<>();
 		List<Integer> tasks = generateTestDate("resources/test_10", info);
 		

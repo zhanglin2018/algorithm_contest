@@ -430,13 +430,17 @@ public class Result {
 	public static int days = 0;
 	public static int theroBoxNum = 0;
 	public static int maxIterateNum = 10000;
-	public static boolean isPreProcess = true;
+	public static ProcessStyle isPreProcess = ProcessStyle.PRE_PROCESS;
+	
+	enum ProcessStyle{
+		PRE_PROCESS, POST_PROCESS, MAX_POST_PROCESS
+	}
 
 	public static void setMaxIterateNum(int iterateNum) {
 		maxIterateNum = iterateNum;
 	}
 	
-	public static void setIsPreProcess(boolean value) {
+	public static void setIsPreProcess(ProcessStyle value) {
 		isPreProcess = value;
 	}
 
@@ -520,12 +524,15 @@ public class Result {
 
 		List<List<List<Integer>>> allOptimizedSolutions = null;
 
-		if (Result.isPreProcess) {
+		if (Result.isPreProcess == ProcessStyle.PRE_PROCESS) {
 			setSelectedAlgorithm(new PruneSelected());
 			allOptimizedSolutions = getKOptimimizedSolutionByIterate(tasksWeight, tasksCount, days);
-		} else {
+		} else if (Result.isPreProcess == ProcessStyle.POST_PROCESS){
 			setSelectedAlgorithm(new PruneProcessSelected());
 			allOptimizedSolutions = getALLOptimizedSolutions(tasksWeight, tasksCount, days);
+		} else {
+			setSelectedAlgorithm(new PruneProcessSelected());
+			allOptimizedSolutions = getKMaxOptimimizedSolutionByIterate(tasksWeight, tasksCount, days);
 		}
 
 		List<List<List<Integer>>> selected = selectedAlgorithm.selectOptimizedAlgorithm(allOptimizedSolutions,
@@ -533,6 +540,78 @@ public class Result {
 		return selected;
 	}
 
+	/*
+	 * optimized DP algorithm
+	 */
+	public static List<List<List<Integer>>> getKMaxOptimimizedSolutionByIterate(List<Integer> tasksWeight,
+			List<Integer> tasksCount, int days) {
+		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days < 0) {
+			return Collections.emptyList();
+		}
+		
+		List<Integer> expectedValue = new ArrayList<>();
+		int i = tasksWeight.size() - 1;
+		expectedValue.add(tasksWeight.get(i));
+		
+		if (tasksWeight.size() == 1 && tasksCount.get(0) == 1) {
+			List<List<List<Integer>>> allSolutions = new ArrayList<>();
+			List<List<Integer>> singleSolutionsList = new ArrayList<>();
+			singleSolutionsList.add(new ArrayList<>());
+			singleSolutionsList.add(expectedValue);
+			allSolutions.add(singleSolutionsList);
+			return allSolutions;
+		}
+		
+		int remainDays = 0;
+		for (Integer singDays : expectedValue) {
+			remainDays += singDays;
+		}
+		remainDays = days - remainDays;
+		
+		
+		
+		List<List<List<Integer>>> allOptimizedSolutions = Collections.emptyList();
+		
+		List<Integer> tasksWeightTmp = new ArrayList<>();
+		tasksWeightTmp.addAll(tasksWeight);
+		List<Integer> tasksCountTmp = new ArrayList<>();
+		tasksCountTmp.addAll(tasksCount);
+		
+		Result.updateTaskList(tasksWeightTmp, tasksCountTmp, expectedValue);
+		
+		int secondMaxValue = tasksWeightTmp.get(0);
+		int resultValue = 0;
+		for (int index=0; index<tasksWeightTmp.size()-1; ++index) {
+			int compareValue = tasksWeightTmp.get(index);
+			if (compareValue>=secondMaxValue && compareValue<=remainDays) {
+				resultValue = compareValue;
+			}else {
+				break;
+			}
+		}
+		
+		List<Integer> expValueIntegers = new ArrayList<>();
+		if (resultValue != 0) {
+			expValueIntegers.add(resultValue);
+			Result.updateTaskList(tasksWeightTmp, tasksCountTmp, expValueIntegers);
+			remainDays = remainDays - resultValue;
+		}
+		
+		
+
+		
+		allOptimizedSolutions = Result.getALLOptimizedSolutions(tasksWeightTmp, tasksCountTmp, remainDays);
+		
+		for (List<List<Integer>> solution : allOptimizedSolutions) {
+			if (!expValueIntegers.isEmpty()) {
+				solution.add(expValueIntegers);
+			}
+			solution.add(expectedValue);
+		}
+		
+		return allOptimizedSolutions;
+	}
+	
 	/*
 	 * optimized DP algorithm
 	 */
@@ -679,8 +758,8 @@ public class Result {
 	private static List<List<Integer>> getOptimiedBoxNum(TaskNode rootNode) {
 		int minBox;
 		List<List<List<Integer>>> allSolutions = TaskNodeManager.solutionsCacheList;
-		System.out.println("solution num: " + allSolutions.size());
-		System.out.println("solution size: " + TaskNodeManager.solutionCount);
+//		System.out.println("solution num: " + allSolutions.size());
+//		System.out.println("solution size: " + TaskNodeManager.solutionCount);
 
 		minBox = allSolutions.get(0).size();
 		int len = 0;
@@ -826,12 +905,52 @@ public class Result {
 			return Collections.emptyList();
 		}
 		
+		Result.setCounts(Result.theroBoxNum);
+		Result.setMaxIterateNum(2000);
+		Result.setIsPreProcess(ProcessStyle.MAX_POST_PROCESS);
+		
+			
+		TaskNodeManager.clearCache();
+		TaskNode rootNode = new TaskNode();
+		initializeSolutionTree(tasksWeight, tasksCount, days, rootNode);
+		
+		List<List<Integer>> resultSolutions = new ArrayList<>();
+		
+		resultSolutions .addAll(getOptimiedBoxNum(rootNode)); 
+		
+		
+		if (resultSolutions.size() >= solutions.size()) {
+			
+			List<List<Integer>> secondSolution = new ArrayList<>();
+			
+			if (resultSolutions.size() > solutions.size()) {
+				secondSolution.addAll(postProcessByKOptimized(tasksWeight, tasksCount, days, solutions));
+				
+			}else if (resultSolutions.size() == solutions.size()){
+				
+				secondSolution.addAll(postProcessByKOptimized(tasksWeight, tasksCount, days, resultSolutions));
+			}
+			
+			if (secondSolution.size() <= solutions.size()) {
+				return secondSolution;
+			}
+			
+			return solutions;
+		} 
+		
+		return resultSolutions;
+	}
+	
+	public static List<List<Integer>> postProcessByKOptimized(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
+			List<List<Integer>> solutions) {
+		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty()
+				|| solutions == null || solutions.isEmpty()) {
+			return Collections.emptyList();
+		}
+		
 		List<List<Integer>> collections = new ArrayList<>();
-		List<Integer> expectedValue = new ArrayList<>();
 		for (List<Integer> solution : solutions) {
-			if (listSum(solution) != days) {
-				expectedValue.addAll(solution);
-			}else {
+			if (listSum(solution) == days) {
 				collections.add(solution);
 			}
 		}
@@ -848,12 +967,6 @@ public class Result {
 			expectedCollection.add(collections.get(i));
 		}
 		
-		for (int i=startIndex; i<collectionsLen; i++) {
-			for (Integer value : collections.get(i)) {
-				expectedValue.add(value);
-			}
-		}
-		
 		List<Integer> tasksWeightTmp = new ArrayList<>();
 		tasksWeightTmp.addAll(tasksWeight);
 		List<Integer> tasksCountTmp = new ArrayList<>();
@@ -861,11 +974,10 @@ public class Result {
 		
 		List<List<Integer>> selectedSolutionList = new ArrayList<>();
 		Result.setCounts(Result.theroBoxNum - startIndex);
-		Result.setMaxIterateNum(4000);
-		Result.setIsPreProcess(false);
+		Result.setMaxIterateNum(3000);
+		Result.setIsPreProcess(ProcessStyle.POST_PROCESS);
 		
 		if (updateTaskList(tasksWeightTmp, tasksCountTmp, convertFormatToList(expectedCollection))) {
-			System.out.println(tasksCountTmp);
 			
 			TaskNodeManager.clearCache();
 			
@@ -882,13 +994,12 @@ public class Result {
 				resultSolutions.add(value);
 			}
 		}
-
+		
 		if (resultSolutions.size() >= solutions.size()) {
 			return solutions;
 		}
 		
 		return resultSolutions;
-
 	}
 
 	@SuppressWarnings("boxing")
@@ -898,8 +1009,12 @@ public class Result {
 		}
 
 		setDays(days);
-		setIsPreProcess(true);
-		setMaxIterateNum(10000);
+		setIsPreProcess(ProcessStyle.PRE_PROCESS);
+		if (tasks.size()>80) {
+			setMaxIterateNum(5000);
+		}else {
+			setMaxIterateNum(10000);
+		}
 		int buttom[] = new int[MAX_DAYS];
 
 		for (Integer taskInteger : tasks) {
