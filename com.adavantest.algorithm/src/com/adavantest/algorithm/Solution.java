@@ -13,8 +13,9 @@ import static java.util.stream.Collectors.toList;
 
 public class Solution {
     public static void main(String[] args) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+    	String filePath = "resources/test";
+    	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
 
         int days = Integer.parseInt(bufferedReader.readLine().trim());
 
