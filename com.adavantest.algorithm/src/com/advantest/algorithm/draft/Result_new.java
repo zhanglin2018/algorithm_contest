@@ -1,4 +1,4 @@
-package com.adavantest.algorithm;
+package com.advantest.algorithm.draft;
 
 import java.util.ArrayList;
 import java.util.Collections;

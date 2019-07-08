@@ -386,7 +386,7 @@ public class TestResult2 {
 });
 		
 		System.out.println("size= " + tasks.size());
-		System.out.println("testAlgorithm19_6:    " + tasks + "     days: " + days + "     expected: " + expected);
+		System.out.println("testAlgorithm19_8:    " + tasks + "     days: " + days + "     expected: " + expected);
 		Assert.assertEquals(expected, Result.get_people_num(days, tasks));
 		System.out.println();	
 	}

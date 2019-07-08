@@ -679,8 +679,8 @@ public class Result {
 	private static List<List<Integer>> getOptimiedBoxNum(TaskNode rootNode) {
 		int minBox;
 		List<List<List<Integer>>> allSolutions = TaskNodeManager.solutionsCacheList;
-//		System.out.println("solution num: " + allSolutions.size());
-//		System.out.println("solution size: " + TaskNodeManager.solutionCount);
+		System.out.println("solution num: " + allSolutions.size());
+		System.out.println("solution size: " + TaskNodeManager.solutionCount);
 
 		minBox = allSolutions.get(0).size();
 		int len = 0;
@@ -861,7 +861,7 @@ public class Result {
 		
 		List<List<Integer>> selectedSolutionList = new ArrayList<>();
 		Result.setCounts(Result.theroBoxNum - startIndex);
-		Result.setMaxIterateNum(7500);
+		Result.setMaxIterateNum(4000);
 		Result.setIsPreProcess(false);
 		
 		if (updateTaskList(tasksWeightTmp, tasksCountTmp, convertFormatToList(expectedCollection))) {
