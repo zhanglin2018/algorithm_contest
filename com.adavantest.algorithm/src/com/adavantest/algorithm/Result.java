@@ -429,7 +429,7 @@ public class Result {
 	public static double[] probilityRate;
 	public static int days = 0;
 	public static int theroBoxNum = 0;
-	public static int maxIterateNum = 10000;
+	public static int maxIterateNum = 2000;
 	public static ProcessStyle isPreProcess = ProcessStyle.PRE_PROCESS;
 	
 	enum ProcessStyle{
@@ -775,43 +775,6 @@ public class Result {
 		return selectedList;
 	}
 
-	public static void initializeSolutionTree1(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
-			TaskNode parentNode) {
-		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0
-				|| parentNode == null) {
-			TaskNodeManager.addSolutionPath(parentNode);
-			return;
-		}
-
-		if (TaskNodeManager.solutionCount > Result.maxIterateNum) {
-			return;
-		}
-
-		List<List<List<Integer>>> allOptimizedSolutions = getSeletedOptimezedSolution(tasksWeight, tasksCount, days);
-
-		for (List<List<Integer>> singleSolution : allOptimizedSolutions) {
-			List<Integer> itegrationList = new ArrayList<>();
-			for (List<Integer> value : singleSolution) {
-				itegrationList.addAll(value);
-			}
-
-			TaskNode childNode = new TaskNode();
-			childNode.parent = parentNode;
-			parentNode.childrens.add(childNode);
-			childNode.values.addAll(itegrationList);
-
-			// judge whether the solution has been contained.
-			List<Integer> tasksWeightTmp = new ArrayList<>();
-			tasksWeightTmp.addAll(tasksWeight);
-			List<Integer> tasksCountTmp = new ArrayList<>();
-			tasksCountTmp.addAll(tasksCount);
-
-			if (updateTaskList(tasksWeightTmp, tasksCountTmp, itegrationList)) {
-				initializeSolutionTree(tasksWeightTmp, tasksCountTmp, days, childNode);
-			}
-		}
-	}
-
 	public static void initializeSolutionTree(List<Integer> tasksWeight, List<Integer> tasksCount, int days,
 			TaskNode parentNode) {
 		if (tasksWeight == null || tasksWeight.isEmpty() || tasksCount == null || tasksCount.isEmpty() || days <= 0
@@ -974,7 +937,7 @@ public class Result {
 		
 		List<List<Integer>> selectedSolutionList = new ArrayList<>();
 		Result.setCounts(Result.theroBoxNum - startIndex);
-		Result.setMaxIterateNum(3000);
+		Result.setMaxIterateNum(2000);
 		Result.setIsPreProcess(ProcessStyle.POST_PROCESS);
 		
 		if (updateTaskList(tasksWeightTmp, tasksCountTmp, convertFormatToList(expectedCollection))) {
@@ -1011,9 +974,9 @@ public class Result {
 		setDays(days);
 		setIsPreProcess(ProcessStyle.PRE_PROCESS);
 		if (tasks.size()>80) {
-			setMaxIterateNum(5000);
+			setMaxIterateNum(3000);
 		}else {
-			setMaxIterateNum(10000);
+			setMaxIterateNum(6000);
 		}
 		int buttom[] = new int[MAX_DAYS];
 
