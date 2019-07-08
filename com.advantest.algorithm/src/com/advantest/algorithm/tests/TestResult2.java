@@ -408,7 +408,11 @@ public class TestResult2 {
 	public void testAlgorithm20() {
 		List<Integer> datas = generateAllData();
 		Collections.sort(datas);
-		System.out.println(datas);
+		System.out.println(100);
+		System.out.println(datas.size());
+		for (Integer value : datas){
+			System.out.println(value);
+		}
 	}
 	
 	
@@ -433,8 +437,13 @@ public class TestResult2 {
 	
 	private List<Integer> generateTwo(){
 		int A1 = 100;
-		int B1 = (int) (A1 * Math.random());
+		int B1 = (int) (A1 * Math.random() + 1);
 		int C1 =  A1-B1;
+		if (C1 <= 0){
+			C1++;
+			B1--;
+		}
+		
 		List<Integer> value = new ArrayList<>();
 		value.add(B1);
 		value.add(C1);
@@ -443,9 +452,13 @@ public class TestResult2 {
 	
 	private List<Integer> generateThree(){
 		int A1 = 100;
-		int B1 = (int) (A1 * Math.random());
-		int C1 = (int) ((A1-B1) * Math.random());
+		int B1 = (int) (A1 * Math.random() + 1);
+		int C1 = (int) ((A1-B1) * Math.random() + 1);
 		int D1 = A1-B1-C1;
+		if (D1 <= 0){
+			D1++;
+			B1--;
+		}
 		List<Integer> value = new ArrayList<>();
 		value.add(B1);
 		value.add(C1);
@@ -455,10 +468,14 @@ public class TestResult2 {
 	
 	private List<Integer> generateFour(){
 		int A1 = 100;
-		int B1 = (int) (A1 * Math.random());
-		int C1 = (int) ((A1-B1) * Math.random());
-		int D1 = (int) ((A1-B1-C1) * Math.random());
+		int B1 = (int) (A1 * Math.random() + 1);
+		int C1 = (int) ((A1-B1) * Math.random() + 1);
+		int D1 = (int) ((A1-B1-C1) * Math.random() + 1);
 		int F1 = A1-B1-C1-D1;
+		if (F1 <=0 ){
+			F1++;
+			B1--;
+		}
 		List<Integer> value = new ArrayList<>();
 		value.add(B1);
 		value.add(C1);
