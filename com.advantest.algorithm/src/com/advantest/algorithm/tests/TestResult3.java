@@ -158,7 +158,7 @@ public class TestResult3 {
 	@Test
 	public void testAlgorithm_testNum_case13() throws NumberFormatException, IOException {
 		int days = 100;
-		int expected = 49;
+		int expected = 50;
 		List<Integer> info = new ArrayList<>();
 		List<Integer> tasks =  generateTestDate("resources1/case13.txt", info);
 		
